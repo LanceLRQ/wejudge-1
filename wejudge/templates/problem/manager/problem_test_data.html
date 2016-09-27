@@ -1,0 +1,87 @@
+{% load desc_status_flag %}
+{% load get_attr %}
+<div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover table-body-valign-middle">
+        <thead>
+            <tr>
+                <th width="140">操作码</th>
+                <th width="50">顺序</th>
+                <th>数据名称</th>
+                <th width="400">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for td in test_data %}
+            <tr>
+                <td>{{ td.handle }}</td>
+                <td align="center">{{ td.order }}</td>
+                <td>
+                    <a class="btn-td-view" data-th="{{ td.handle }}" href="javascript: void(0)" target="_self">{{ td.name }}</a>&nbsp;
+                    <a href="{% url 'problem_mgr_testdata_download' problem.id td.handle 'in' %}" target="_blank" class="label label-success" data-th="{{ td.handle }}">下载in文件</a>
+                    <a href="{% url 'problem_mgr_testdata_download' problem.id td.handle 'out' %}" target="_blank" class="label label-info" data-th="{{ td.handle }}">下载out文件</a>
+
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-primary btn-td-upload" data-th="{{ td.handle }}">上传数据</a>
+                    <a class="btn btn-sm btn-warning btn-td-setting" data-th="{{ td.handle }}">设置</a>
+                    <a class="btn btn-sm btn-danger btn-td-delete" data-th="{{ td.handle }}">删除</a>
+                </td>
+            </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" align="center">暂时没有>.<</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="btn-group">
+    <a href="javascript:void(0)" id="btn-new-testdata" class="btn btn-primary">新增数据</a>
+    {% if not problem.pause_judge %}
+    <a href="javascript:void(0)" id="btn-pause-judge" class="btn btn-warning">暂停评测</a>
+    {% else %}
+    <a href="javascript:void(0)" id="btn-start-judge" class="btn btn-success">启用评测</a>
+    {% endif %}
+</div>
+<div class="btn-group" style="float:right">
+<a href="javascript:void(0)" id="btn-run-tdmaker"  class="btn btn-info">一键生成『输出参考数据』</a>
+</div>
+<hr>
+<div class="table-responsive">
+    <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>任务ID</th>
+                <th>发布者</th>
+                <th>编译语言</th>
+                <th>结果</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in tdmaker_queue %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.author.nickname }}({{ item.author.realname }})</td>
+                <td>{{ item.lang | default:"gcc" }}</td>
+                <td>{% if item.queue_status == 1 %}{% if item.flag == -1 %}已取出{% elif item.flag == 0 %}写入成功{% else %}写入失败{% endif %}{% else %}队列中{% endif %}</td>
+                <td>
+                    {% if item.flag >= 0 %}
+                        评测结果：{{ item.flag | desc_status_flag | get_attr:"title"  }}&nbsp;&nbsp;总共耗时：{{ item.timeused }}ms&nbsp;&nbsp;最大内存：{{ item.memused }}K
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" align="center">并没有任务</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <td colspan="5">当前仅显示前30条任务</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

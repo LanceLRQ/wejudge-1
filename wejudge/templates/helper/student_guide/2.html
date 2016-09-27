@@ -1,0 +1,28 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="head">
+    <div id="head-backphoto">
+        <img src="/static/guide/students/img/head.png" width="100%" height="100%">
+    </div>
+    <div id="square" style="position: absolute;left:200px;top:-12px;">
+        <img  src="/static/guide/students/img/虚线方框%20评测历史.png">
+    </div>
+
+</div>
+<div id="main">
+    <div >
+        <img src="/static/guide/students/img/main.png" width="100%" height="100%" style="filter:blur(5px);-webkit-filter: blur(5px);">
+    </div>
+    <div id="intro"style="position:absolute;left:200px;top:30px;display: none">
+        <img src="/static/guide/students/img/便签.png">
+        <p class="introduce">在这里可以看到全站的评测状<br>
+            态显示了所有提交记录以及其<br>
+            评测情况</p>
+        <a  href="{% url 'helper_guide_student_viewer' 3 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:172px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

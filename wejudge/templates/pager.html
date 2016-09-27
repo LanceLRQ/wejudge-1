@@ -1,0 +1,16 @@
+<ul class="pagination">
+    <li>
+      <a href="{{ first_url }}{{ query_param }}" class="pager_item">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    {% for page_item in pages_url %}
+    <li {% if page_item.active %}class="active"{% endif %}><a href="{{ page_item.url }}{{ query_param }}" class="pager_item">{{ page_item.idx }}</a></li>
+    {% endfor %}
+    <li>
+      <a href="{{ last_url }}{{ query_param }}" class="pager_item">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+    <li><a href="javascript:WeJudge.pager_jumper('{{ first_url }}{{ query_param }}');" title="转到某页"><span class="glyphicon glyphicon-share-alt"></span></a></li>
+</ul>

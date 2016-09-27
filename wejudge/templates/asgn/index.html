@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load friendly_time %}
+{% load running_status %}
+{% load vrequire_status %}
+{% load get_attr %}
+{% block page_title %}作业 - {% endblock %}
+{% block page_body %}
+<div class="header_container"><h1>作业<small>{% if now_course != None %} / {{ now_course.name }}{% endif %} / {{ web_config.year }}-{{ web_config.year|add:1 }}年，第{{ web_config.term }}学期</small></h1></div>
+<div class="page_container">
+    <div class="row">
+        <div class="col-sm-3">
+            <!--左侧选课栏目-->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">课程列表</h3>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-success btn-block dropdown-toggle"  style="border: 0px; border-radius: 0px;" type="button" data-toggle="dropdown">
+                        点击切换学期 ({{ view_term.year }} - {{ view_term.year | add:1 }}学年，第{{ view_term.term }}学期)
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        {% for item in year_terms %}
+                        <li role="presentation"{% if view_term.year == item.year and view_term.term == item.term %} class="active" {% endif %}>
+                            <a role="menuitem" tabindex="-1" href="{% url 'asgn_index' %}?year={{ item.year }}&term={{ item.term }}">
+                                {{ item.year }} - {{ item.year | add:1 }}学年，第{{ item.term }}学期
+                                {% if web_config.year == item.year and web_config.term == item.term %}
+                                (系统默认学期)
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="list-group">
+                    {% for c in course_list %}
+                    <a href="{% url 'asgn_index' c.id %}" class="list-group-item {% if c.id == now_course.id %}active{% endif %}">
+                        {{ c.name }}
+                        {% if user_session.user_role == 99 %}
+                            - {{ c.teacher.realname }}
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                    <div align="center"><a class="list-group-item">没有课程信息</a></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                <h3 class="panel-title">课程信息</h3>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">课程名称：{{ now_course.name }}</li>
+                    <li class="list-group-item">任课教师：{{ now_course.teacher.realname }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-sm-9">
+        {% if now_course != None %}
+            {% if message_list != None %}
+                <div class="alert alert-warning">
+                    <h4>课程公告</h4>
+                    {% for message in message_list %}
+                        {{ forloop.counter }}.【{{ message.title }}】{{ message.content | striptags | slice:"30" }}...
+                    {% endfor %}<br />
+                    <a href="{% url 'education_index' now_course.id %}#message" target="_blank">[点击查看详情]</a>
+                </div>
+            {% endif %}
+            {% if user_session.user_role == 2 %}
+            <div class="btn-group">
+                <a href="#" id="new_asgn_btn" class="btn btn-success">发布作业</a></li>
+                <a href="{% url 'asgn_score_counter' now_course.id %}" id="" class="btn btn-primary">成绩统计</a></li>
+            </div><br /><br />
+            <script type="text/javascript">
+                $(function () {
+                    $("#new_asgn_btn").click(function () {
+                        $.ModalBox({
+                            title: "发布作业",
+                            mode: "url",
+                            url: "{% url 'asgn_mgr_new_asgn' now_course.id %}",
+                            default_btn_title: '保存',
+                            loaded: function () {
+                                $("#asgn_setting_form").submit(function () {
+                                   $.GRestP({
+                                       responseType: 'json',
+                                        callback: function (flag, entity) {
+                                            if(flag){
+                                                $.AlertBox({
+                                                    body: "题目设置保存成功",
+                                                    color: "success",
+                                                    title: "操作成功",
+                                                    callback: function () {
+                                                        $.ModalBox({}).hide();
+                                                        window.location.reload();
+                                                    }
+                                                }).show();
+                                            }else{
+                                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                            }
+                                        }
+                                    }).submit_form(this);
+                                    return false;
+                                });
+                            },
+                            default_btn_action: function () {
+                                $("#asgn_setting_form").submit();
+                            }
+                        }).show();
+                    });
+                });
+            </script>
+            {% endif %}
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>作业名称</th>
+                        <th>发布时间</th>
+                        <th>访问权限</th>
+                        {% if user_session.user_role == 1 %}
+                        <th>得分 / 总分</th>
+                        <th>访问申请</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asgn in asgn_list %}
+                        <tr>
+                            <td><a href="{% url 'asgn_problem_list' asgn.id %}">{{ asgn.name }}</a></td>
+                            <td>{{ asgn.create_time | friendly_time }}</td>
+                            <td>{{ running_status | running_status:asgn.id | safe }}</td>
+                            {% if user_session.user_role == 1 %}
+                            <td>{% if asgn.id in asgn_score %}{{ asgn_score | get_attr:asgn.id }} / {{ asgn.full_score }}{% else %}未批改{% endif %}</td>
+                            <td>{{ visit_require | vrequire_status:asgn.id | safe }}</td>
+                            {% endif %}
+                        </tr>
+                    {% empty %}
+                        {% if user_session.user_role == 1 %}
+                        <tr><td colspan="4" align="center">暂时没有作业 ;-)</td></tr>
+                        {% else %}
+                        <tr><td colspan="3" align="center">还没有发布作业 ;-)</td></tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <strong><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;声明：WeJudge提供的“调课”仅仅指获取作业访问权限，<span class="text-danger">如有需要调课，请务必与老师当面说明。</span><br >
+            <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;因未向老师说明调课，导致考勤系统留下“旷课”记录，WeJudge不会承担任何责任。</strong>
+        {% else %}
+            <div class="alert alert-danger">当前学期还没有老师发布课程哦！</div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+<br>
+{% endblock %}
+{% block page_script %}
+    {% if now_course != None %}
+    <script type="text/javascript">
+    $(function () {
+        $("a.btn_visit_req").click(function () {
+            var id = $(this).attr("data-id");
+            $.ModalBox({
+                mode: "url",
+                title: "申请调课",
+                url: '{% url 'asgn_visit_req' 0 %}'.replace("asgn/0", "asgn/"+id),
+                default_btn_title: "申请",
+                loaded: function () {
+                    $("#visit_req_form").submit(function () {
+                        $.GRestP({
+                           responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        body: "申请成功，请等待老师批阅",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#visit_req_form").submit();
+                }
+            }).show();
+        });
+    });
+    </script>
+    {% endif %}
+{% endblock %}

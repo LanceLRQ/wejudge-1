@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load contest_status %}
+{% load full_time %}
+{% block page_title %}比赛 - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>在线比赛</h1>
+</div>
+<div class="page_container">
+    {% if user_session.user_role >= 2%}
+    <ul class="pagination">
+        <li class=""><a href="{% url 'new_contest' %}">创建比赛</a></li>
+    </ul>
+    {% endif %}
+    {{ pager }}
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+        <tr>
+            <th width="100">比赛编号</th>
+            <th>比赛名称</th>
+            <th>比赛开始时间</th>
+            <th>比赛结束时间</th>
+            <th>比赛发起人</th>
+            <th>运行状态</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for contest in contesnt_list %}
+        <tr>
+            <td>{{ contest.id }}</td>
+            <td><a href="{% url 'contest_body' contest.id %}">{{ contest.title }}</a></td>
+            <td>{{ contest.start_time | full_time}}</td>
+            <td>{{ contest.end_time | full_time }}</td>
+            <td>{{ contest.author.nickname }}</td>
+            <td>{% if contest.pause %}<span class="label label-default">暂停评测</span>&nbsp;{% endif %}{{ contest.start_time | contest_status:contest.end_time | safe }}</td>
+        </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">还没有发布过比赛</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {{ pager }}
+</div>
+{% endblock %}

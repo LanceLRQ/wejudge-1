@@ -1,0 +1,204 @@
+{% extends "asgn/base.html" %}
+{% load get_attr %}
+{% load full_time %}
+{% block asgn_page_title%}程序设计课程实验报告{% endblock %}
+{% block asgn_page_body %}
+    <div align="center"><h2>程序设计课程实验报告</h2></div>
+    <div align="center">
+        <h5>
+        姓名：{{ report.student.realname }}&nbsp;&nbsp;&nbsp;&nbsp;
+        学号：{{ report.student.id }}&nbsp;&nbsp;&nbsp;&nbsp;
+        时间：{{ report.create_time | full_time }}
+        {% if user_session.user_id == report.student.id  %}
+        {% if request.GET.preview != '1' %}
+        <a href="?preview=1">[预览]</a>
+        {% else %}
+        <a href="?preview=0">[返回编辑]</a>
+        {% endif %}
+        {% endif %}
+        </h5>
+    </div>
+    <hr/>
+    <div class="table-responsive">
+    <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>题目ID</th>
+                <th width="50%">题目名称</th>
+                <th>AC/提交/忽略</th>
+                <th>分值</th>
+                <th>状态</th>
+                <th>最终得分</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sitem in solutions %}
+        <tr>
+            <td>{{ sitem.problems.id }}</td>
+            <td>{{ sitem.problems.title }}</td>
+            <td><a href="{% url "asgn_status_list" asgn.id %}?author_id={{ sitem.author.id }}&problem_id={{ sitem.problems.id }}">{{ sitem.accepted}}/{{ sitem.submission}}/{{ sitem.ignore }}</a></td>
+            <td>{{ score_list | get_attr:sitem.problems.id }}</td>
+            <td>{%if sitem.accepted > 0 %}
+                <span class="label label-success">完成</span>
+            {% else %}
+                 <span class="label label-warning">未完成</span>
+            {% endif %}</td>
+            <td>{%if sitem.accepted > 0 %}{{ score_list | get_attr:sitem.problems.id }}{% else %}0{% endif %}</td>
+        </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" align="center">天了噜，你还没有完成题目？？</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4"></td>
+                <td>判题机总得分</td>
+                <td>{{ report.judge_score }}</td>
+            </tr>
+            {% if user_session.user_role != 2 %}
+            <tr>
+                <td colspan="4"></td>
+                <td>老师给分</td>
+                <td>
+                    {% if report.teacher_check %}
+                        <span class="text-success">{{ report.finally_score }}</span>
+                    {% else %}
+                        <span class="text-danger">未批改</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        </tfoot>
+    </table>
+    <hr />
+    <h4>我的感想</h4>
+    
+    {% if request.GET.preview != '1' and permission.1 == 0 and user_session.user_id == report.student.id %}
+        <form method="post" action="{% url 'asgn_save_impression' asgn.id %}" id="report-impression-form">
+            <textarea name="impression" id="editor_impression">{{ report.impression | default:"" | safe }}</textarea><br />
+            <button type="submit" class="btn btn-primary">保存实验感想</button>
+        </form>
+        <script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+        <script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+        <script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+        <script type="text/javascript">
+            $(function () {
+                CKEDITOR.replace( 'editor_impression', { height:'25em' } );
+
+                window.onunload = function () {
+                    sis.manuallyReleaseData();
+                };
+
+                var sis = $("#report-impression-form").sisyphus({
+                    locationBased: true,
+                    timeout: 0,
+                    onSave: function () {
+                        $(window).bind('beforeunload',function(){
+                            return "确定离开此页面吗？未保存的内容将会丢失！";
+                        });
+                    }
+                });
+                $("#report-impression-form").submit(function () {
+                    for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+                   $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    title: "保存成功",
+                                    body: "实验感想保存成功",
+                                    color: "success",
+                                    callback: function () {
+                                        $(window).unbind('beforeunload');
+                                        window.location.reload()
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "保存失败"
+                                }).show();
+                            }
+                        }
+                    }).submit_form(this);
+                    return false;
+                });
+            });
+        </script>
+    {% else %}
+    <div class="well">
+        {{ report.impression | default:"暂无" | safe }}
+    </div>
+    {% endif %}
+    
+
+    <hr />
+    <h4>教师批阅结果&nbsp;{% if report.teacher_check %}<span class="label label-success">已批阅</span>{% else %}<span class="label label-warning">待批阅</span>{% endif %}</h4>
+    {% if user_session.user_role == 2 or permission.1 == 3 %}
+        <form method="post" action="{% url "asgn_mgr_save_asgn_checkup" asgn.id report.id %}" id="report-checkup-form">
+            <div class="input-group">
+                <div class="input-group-addon">最终评分</div>
+                <input type="text"  class="form-control" name="score" value="{% if report.teacher_check %}{{ report.finally_score }}{% else %}{{ report.judge_score }}{% endif %}">
+            </div><br />
+            <textarea name="remark" id="editor_remark">{{ report.teacher_remark | default:"" }}</textarea><br />
+            <button type="submit" class="btn btn-primary">保存批改</button>
+        </form>
+        <script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+        <script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+        <script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+        <script type="text/javascript">
+            $(function () {
+                CKEDITOR.replace( 'editor_remark', { height:'25em' } );
+
+                window.onunload = function () {
+                    sis.manuallyReleaseData();
+                };
+
+                var sis = $("#report-checkup-form").sisyphus({
+                    locationBased: true,
+                    timeout: 0,
+                    onSave: function () {
+                        $(window).bind('beforeunload',function(){
+                            return "确定离开此页面吗？未保存的内容将会丢失！";
+                        });
+                    }
+                });
+                $("#report-checkup-form").submit(function () {
+                    for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+                   $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    title: "保存成功",
+                                    body: "该实验报告批改完毕！",
+                                    color: "success",
+                                    callback: function () {
+                                        $(window).unbind('beforeunload');
+                                        parent.location.reload();
+                                        window.close();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "保存失败"
+                                }).show();
+                            }
+                        }
+                    }).submit_form(this);
+                    return false;
+                });
+            });
+        </script>
+    {% else %}
+    <div class="well">
+        {{ report.teacher_remark | default:"暂无评语" | safe }}
+    </div>
+    {% endif %}
+
+{% endblock %}

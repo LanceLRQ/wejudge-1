@@ -1,0 +1,19 @@
+<form id="dialog-login-form" action="{% url 'account_api_check_login' %}" method="post">
+    <div class="input-group input-group-lg">
+        <div class="input-group-addon">账号</div>
+        <input type="text" class="form-control" id="loginform-user" name="user">
+    </div><br />
+    <div class="input-group input-group-lg">
+        <div class="input-group-addon">密码</div>
+        <input type="password" class="form-control" id="loginform-pwd" name="password">
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon" style="text-align: left;"><label><input  type="checkbox" name="rememberme" value="1">&nbsp;记住我（14天内有效）</label></div>
+        <div class="input-group-addon" style="text-align: right;"><a href="javascript:void(0)" target="_self" onclick="alert('请使用学号和教务密码进行登录，然后进行修改密码')">忘记密码?</a></div>
+    </div><br />
+    <div id="form-psbar" style="display: none;">
+        <div class="progress">
+            <div class="progress-bar progress-bar-success progress-bar-striped active" style="width: 100%;"></div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block page_title %}{% endblock %}
+{% block page_head %}
+<script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+<script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+<link rel="stylesheet" href="/static/library/bootstrap-datetimepicker.min.css"/>
+<script src="/static/library/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>课程管理<small> / {{ view_term.year }}-{{ view_term.year|add:1 }}年，第{{ view_term.term }}学期</small></h1>
+</div>
+<div class="page_container">
+    <div class="row">
+        <div class="col-sm-3">
+            {% if user_session.user_role == 1 %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">学生信息</h3>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">学号：{{ user_session.user_id }}</li>
+                    <li class="list-group-item">姓名：{{ user_session.user_realname }}</li>
+                </ul>
+            </div>
+            {% elif user_session.user_role == 2 %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">教师信息</h3>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">工号：{{ user_session.user_id }}</li>
+                    <li class="list-group-item">姓名：{{ user_session.user_realname }}</li>
+                </ul>
+            </div>
+            {% endif %}
+            <!--左侧选课栏目-->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">课程列表</h3>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-success btn-block dropdown-toggle"  style="border: 0px; border-radius: 0px;" type="button" data-toggle="dropdown">
+                        点击切换学期 ({{ view_term.year }} - {{ view_term.year | add:1 }}学年，第{{ view_term.term }}学期)
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        {% for item in year_terms %}
+                        <li role="presentation"{% if view_term.year == item.year and view_term.term == item.term %} class="active" {% endif %}>
+                            <a role="menuitem" tabindex="-1" href="{% url 'education_index' %}?year={{ item.year }}&term={{ item.term }}">
+                                {{ item.year }} - {{ item.year | add:1 }}学年，第{{ item.term }}学期
+                                {% if web_config.year == item.year and web_config.term == item.term %}
+                                (系统默认学期)
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="list-group">
+                    {% for c in course_list %}
+                    <a href="{% url 'education_index' c.id %}" class="list-group-item {% if c.id == course.id %}active{% endif %}">
+                        {{ c.name }}
+                        {% if user_session.user_role == 99 %}
+                            - {{ c.teacher.realname }}
+                        {% endif %}
+                    </a>
+                    {% empty %}
+                    <div align="center"><a class="list-group-item">没有课程信息</a></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">工具与设置</h3>
+                </div>
+                <div class="list-group">
+                    {% if user_session.user_role >= 2 %}
+                    <a href="javascript:void(0)" class="list-group-item" id="btn-new-course">创建课程</a>
+                    {% if course != None %}
+                    <a href="javascript:void(0)" class="list-group-item" id="btn-modify-course" data-id="{{ course.id }}">编辑课程</a>
+                    <a href="javascript:void(0)" class="list-group-item" id="btn-delete-course" data-id="{{ course.id }}">删除课程</a>
+                    {% endif %}
+                    {% elif user_session.user_role == 1 %}
+                    <a href="javascript:void(0)" class="list-group-item" id="btn-course-choosing">我要选课</a>
+                    {% endif %}
+                    <!--a class="list-group-item disabled">更改学期</a-->
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9">
+            {% if course != None %}
+            <ul class="nav nav-tabs" role="tablist">
+                <!--公共功能-->
+                <li role="presentation"><a href="#home" id="tab-btn-home" role="tab" data-toggle="tab">课程信息</a></li>
+                <li role="presentation"><a href="#message" id="tab-btn-message" role="tab" data-toggle="tab">课程通知</a></li>
+                <li role="presentation"><a href="#resource" id="tab-btn-resource" role="tab" data-toggle="tab">教学资料</a></li>
+                {% if user_session.user_role == 99 or user_session.user_role == 2 %}
+                <!--教师功能-->
+                <li role="presentation"><a href="#arrangement" id="tab-btn-arrangement" role="tab" data-toggle="tab">排课管理</a></li>
+                <li role="presentation"><a href="#students" id="tab-btn-students" role="tab" data-toggle="tab">学生管理</a></li>
+                <li role="presentation"><a href="#assistants" id="tab-btn-assistants" role="tab" data-toggle="tab">助教管理</a></li>
+                {% endif %}
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane" id="home">
+                    <div class="my-tab-container"></div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="message">
+                    <div class="my-tab-container"></div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="resource">
+                    <div class="my-tab-container"></div>
+                </div>
+                {% if user_session.user_role == 99 or user_session.user_role == 2 %}
+                <div role="tabpanel" class="tab-pane" id="arrangement">
+                    <div class="my-tab-container"></div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="students">
+                    <div class="my-tab-container"></div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="assistants">
+                    <div class="my-tab-container"></div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+                {% if user_session.user_role == 2 or user_session.user_role == 99 %}
+                    <div class="alert alert-warning">该学期还没有老师发布课程</div>
+                {% else %}
+                    <div class="alert alert-warning">该学期您还没有加入课程</div>
+                {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+<br />
+{% endblock %}
+{% block page_script %}
+    {% include "education/home_script.html" %}
+{% endblock %}

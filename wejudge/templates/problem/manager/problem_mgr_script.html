@@ -1,0 +1,386 @@
+{% load load_json %}
+{% load get_attr %}
+<script type="text/javascript" src="/static/library/linkagesel-min.js"></script>
+<script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+<script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $.ajaxSetup({ cache: true });
+
+
+        var editor = null;
+        var info_page_loaded = false;
+        var history_page_loaded = false;
+        // === 题目编辑页面 ===
+        $("#tab-btn-info").on("shown.bs.tab", function () {
+            window.location.hash="#info";
+            if(!info_page_loaded){
+                CKEDITOR.replace( 'editor_description', { height:'25em' } );
+                CKEDITOR.replace( 'editor_input' );
+                CKEDITOR.replace( 'editor_output' );
+                CKEDITOR.replace( 'editor_sample_input' );
+                CKEDITOR.replace( 'editor_sample_output' );
+                CKEDITOR.replace( 'editor_hint' );
+
+                window.onunload = function () {
+                    sis.manuallyReleaseData();
+                };
+
+                var sis = $("#form-save-problem").sisyphus({
+                    locationBased: true,
+                    timeout: 0,
+                    onSave: function () {
+                        $(window).bind('beforeunload',function(){
+                            return "确定离开此页面吗？未保存的内容将会丢失！";
+                        });
+                    }
+                });
+                $(".btn-difficutly").click(function () {
+                    var val = $(this).attr('dat-value');
+                    $("#form-difficulty").val(val);
+                    $("#difficutly_dropdown_title").text($(this).text());
+                });
+                $(".btn-difficutly[dat-value={{ problem.difficulty }}]").click();
+                $("#form-save-problem").submit(function () {
+                    for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    title: "保存成功",
+                                    body: "题目信息保存成功",
+                                    color: "success",
+                                    callback: function () {
+                                        $(window).unbind('beforeunload');
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                            }
+                        }
+                    }).submit_form(this, '{% url 'problem_mgr_save_problem_info' problem.id %}');
+                    return false;
+                });
+                info_page_loaded = true;
+            }
+        });
+        // === 示例代码页面 ===
+        var editorMode = {
+            "gcc": "text/x-csrc",
+            "gcc-cpp": "text/x-c++src",
+            "java": "text/x-java"
+        };
+        $("#tab-btn-demo-code").on('shown.bs.tab', function () {
+            if(editor==null){
+                jQuery.getScript('/static/codemirror/lib/codemirror.js', function (response,status) {
+                    if(status != 'success') {return;}
+                    jQuery.getScript('/static/codemirror/mode/clike/clike.js', function (response,status) {
+                        if(status != 'success') {return;}
+                        jQuery.getScript('/static/codemirror/mode/javascript/javascript.js', function (response,status) {
+                            if(status != 'success') {return;}
+                            window.location.hash="#demo-code";
+
+                            $(".slc-lang").click(function () {
+                                var val = $(this).val();
+                                changeEditor(val);
+                                $("#code_lang").val(val);
+                                $(".slc-lang").removeClass("btn-primary");
+                                $(this).addClass("btn-primary");
+                            });
+
+                            function changeEditor(lang){
+                                if(editor != null){
+                                    editor.toTextArea();
+                                }
+                                editor = CodeMirror.fromTextArea(document.getElementById("demo-code-editor"), {
+                                    indentUnit: 4,
+                                    indentWithTabs: true,
+                                    lineNumbers: true,
+                                    mode: editorMode[lang],
+                                    matchBrackets: true,
+                                    showCursorWhenSelecting: true
+                                });
+                                editor.setSize("100%", "400px");
+                            }
+
+                            $("#demo-code-submit-form").submit(function () {
+                                editor.save();
+                                $("#btn_submit_demo_code").prop('disable', false);
+                                $.GRestP({
+                                    responseType: 'json',
+                                    callback: function (flag, entity) {
+                                        $("#btn_submit_demo_code").prop('disable', true);
+                                        if(flag){
+                                            $.AlertBox({
+                                                body: "示例代码已经保存",
+                                                color: "success",
+                                                title: "提交成功"
+                                            }).show();
+                                        }else{
+                                            $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                        }
+                                    }
+                                }).submit_form(this);
+                                return false;
+                            });
+
+                            $("#demo-code-page-loading").hide();
+
+                            $("#demo-code-page").show(0,
+                                    function () {
+                                        $(".lang-{{ problem.demo_code | load_json |get_attr:"lang" |default:"gcc" }}").click();
+                                    }
+                            );
+
+                        });
+                    });
+                });
+            }
+        });
+        // === 测试数据界面
+        $("#tab-btn-test-data").on('shown.bs.tab', function () {
+            window.location.hash="#test-data";
+        });
+        $(".btn-td-setting").click(function () {
+            var handle = $(this).attr('data-th');
+            $.ModalBox({
+                mode: 'url',
+                url: '{% url 'problem_mgr_testdata_setting' problem.id 'handle_placeholder' %}'.replace('handle_placeholder', handle),
+                title: '测试数据设置',
+                default_btn_title: '确定',
+                loaded: function () {
+                    $("#testdata_setting_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if (flag) {
+                                    $.AlertBox({
+                                        body: "测试数据设置保存成功",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                } else {
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function() {
+                    if ($("#testdata_setting_form").length != 1) {
+                        $.ModalBox({}).hide();
+                        return false;
+                    }
+                    $("#testdata_setting_form").submit();
+                }
+            }).show();
+        });
+        $(".btn-td-view").click(function () {
+            var handle = $(this).attr('data-th');
+            $.ModalBox({
+                mode: 'url',
+                size: 'large',
+                url: '{% url 'problem_mgr_testdata_view' problem.id 'handle_placeholder' %}'.replace('handle_placeholder', handle),
+                title: '查看、编辑测试数据',
+                default_btn_title: '确定',
+                loaded: function() {
+                    $("#testdata-viewer-form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if (flag) {
+                                    $.AlertBox({
+                                        body: "测试数据内容保存成功",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                        }
+                                    }).show();
+                                } else {
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function() {
+                    if ($("#testdata-viewer-form").length != 1) {
+                        $.ModalBox({}).hide();
+                        return false;
+                    }
+                    $("#testdata-viewer-form").submit()
+                }
+            }).show();
+        });
+        $(".btn-td-upload").click(function () {
+            var handle = $(this).attr('data-th');
+            $.ModalBox({
+                mode: 'url',
+                size: 'large',
+                url: '{% url 'problem_mgr_upload_testdata' problem.id 'handle_placeholder' %}'.replace('handle_placeholder', handle),
+                title: '上传测试数据',
+                default_btn_title:"关闭"
+            }).show();
+        });
+        $("#btn-run-tdmaker").click(function () {
+            $.ConfirmBox({
+                title: "操作提示",
+                body: "运行示例代码以生成新的测试数据输出样例，原来的数据将被覆盖，请注意。<br /><br />强烈建议先暂停当前题目的提交，然后等待一小段时间后再使用本功能。",
+                color: 'warning',
+                callback: function (flag) {
+                    if(!flag){return false;}
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    body: "加入队列成功！请在下方刷新查看生成进度。",
+                                    color: "success",
+                                    title: "操作成功",
+                                    callback: function () {
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                            }
+                        }
+                    }).call('{% url 'problem_mgr_run_tdmaker' problem.id %}');
+                }
+            }).show();
+        });
+        $(".btn-td-delete").click(function(){
+            var handle = $(this).attr('data-th');
+            $.ConfirmBox({
+                title: "提示",
+                body: "删除操作将会自动清理测试数据文件，并且无法恢复。确定继续吗？",
+                color: 'warning',
+                callback: function (flag) {
+                    if(!flag){return false;}
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    body: "测试数据删除成功",
+                                    color: "success",
+                                    title: "操作成功",
+                                    callback: function () {
+                                        $.ModalBox({}).hide();
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                            }
+                        }
+                    }).call('{% url 'problem_mgr_delete_testdata' problem.id  'handle_placeholder' %}'.replace('handle_placeholder', handle));
+                }
+            }).show();
+        });
+        $("#btn-new-testdata").click(function(){
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({
+                            body: "新建测试数据成功",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).call('{% url 'problem_mgr_new_testdata' problem.id %}')
+        });
+        $("#btn-start-judge").click(function(){
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({
+                            body: "成功启动评测",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).call('{% url 'problem_mgr_change_problem_judge_pause' problem.id 0 %}')
+        });
+        $("#btn-pause-judge").click(function(){
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({
+                            body: "成功暂停评测",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).call('{% url 'problem_mgr_change_problem_judge_pause' problem.id 1 %}')
+        });
+        // === 删除题目
+         $("#tab-btn-delete").on('shown.bs.tab', function () {
+            window.location.hash="#delete";
+        });
+        $("#form-delete-problem").submit(function () {
+            $("#btn-delete-action").prop('disable', false);
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    $("#btn-delete-action").prop('disable', true);
+                    if(flag){
+                        $.AlertBox({
+                            body: "当前题目已经成功删除",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                window.location.href = "{% url 'problem_archive' %}";
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+        // === 公有跳转
+        var hash = window.location.hash.replace("#", "");
+        if(hash != "info" && hash != "demo-code" && hash != "test-data" && hash != "delete"){
+            hash = "info";
+        }else{
+        }
+        $("#tab-btn-" + hash).tab("show");
+
+    });
+</script>

@@ -1,0 +1,17 @@
+<form id="testdata_setting_form" action="{% url 'problem_mgr_save_testdata_setting' problem.id %}" method="post">
+    <input type="hidden" name="handle" value="{{ td.handle }}"/>
+    <div class="input-group">
+        <div class="input-group-addon">名称</div>
+        <input type="text" class="form-control" name="name" value="{{ td.name }}">
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">评测顺序（从1开始）</div>
+        <input type="text" class="form-control" value="{{ td.order | default:'0' }}" name="order">
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">测试数据可见<input type="checkbox" value="1" name="visible" {% if td.visible %}checked{% endif %}/></div>
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">测试数据可用<input type="checkbox" value="1" name="available" {% if td.available %}checked{% endif %}/></div>
+    </div>
+</form>

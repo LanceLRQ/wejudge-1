@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block page_title %}评测历史 - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>评测历史</h1>
+</div>
+<div class="page_container">
+    <ul class="pagination">
+        <li><a href="javascript:void(0)" id="btn-status-filter"><span class="glyphicon glyphicon-filter"></span>&nbsp;筛选</a></li>
+    </ul>
+    {{ pager }}
+    {% include "problem/status/list_body.html" %}
+    {{ pager }}
+</div>
+{% endblock %}
+{% block page_script %}
+<script type="text/javascript">
+    $(function () {
+        var url="{% url 'problem_judge_status_get_filter_page' %}?problem_id=$2&author_id=$3&flag=$4&author_type=$1";
+        $("#btn-status-filter").click(function () {
+           $.ModalBox({
+                title: '筛选评测结果',
+                mode: "url",
+                url: url.replace("$2", "{{ problem_id |default:'' }}").replace("$3", "{{ author_id|default:'' }}").replace("$4", "{{ flag }}").replace("$1", "{{ author_type }}"),
+                loaded: function () {
+                    $("#status_filter-form").attr("action", "{% url "problem_judge_status" %}")
+                },
+                default_btn_action: function () {
+                    $("#status_filter-form").submit();
+                }
+           }).show();
+        });
+    });
+</script>
+{% endblock %}

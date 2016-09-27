@@ -1,0 +1,30 @@
+.inPhoto{
+    animation: anim 3s;
+    -webkit-animation: anim 3s;
+    animation-fill-mode: forwards;
+    -webkit-animation-fill-mode: forwards;
+}
+@keyframes anim {
+    0%{
+        -webkit-filter: blur(0px);
+        filter:blur(0px);
+    }
+    100%{
+        -webkit-filter: blur(5px);
+        filter:blur(5px);
+    }
+}
+@-webkit-keyframes anim {
+    0%{
+        -webkit-filter: blur(0px);
+        filter:blur(0px);
+    }
+
+    100%{
+        -webkit-filter: blur(5px);
+        filter:blur(5px);
+    }
+}
+.introduce{
+    position: absolute;top:62px;left:95px;font-size: 15px;
+}

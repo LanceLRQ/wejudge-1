@@ -1,0 +1,148 @@
+{% load language_called %}
+<link rel="stylesheet" href="/static/jcrop/css/jquery.Jcrop.min.css">
+<script type="text/javascript" src="/static/jcrop/js/jquery.Jcrop.min.js"></script>
+<div class="my-tab-container">
+    <form id="avatar_form" method="post">
+        <div align="center"><img src="{% if user_session.user_headimg == None or user_session.user_headimg == '' %}/static/images/headimg_placeholder.png{% else %}/resource/headimg/{{ user_session.user_headimg }}{% endif %}" alt="" id="avatar_holder"></div>
+        <br /><br />
+
+        <div class="input-group">
+            <div class="input-group-addon">选择图片(1M以内）</div>
+            <input type="file" id="avatar_img" class="form-control" name="image">
+        </div>
+        <br>
+        <input type="submit" value="上传并处理" class="btn btn-success" id="btn-submit" disabled/>
+        <span class="glyphicon glyphicon-exclamation-sign"></span>&nbsp;选择的图片应该在1MB内，并且是jpg或者png格式。选择完毕后，请用鼠标在图片区域拖动出头像的正方形区域，再进行上传操作。
+        <div class="progress" style="margin-top: 6px; display: none;" id="uploadProgressBar">
+            <div id="uploadProgressBarBody" class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="width: 0%">
+                Uploading...
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    $(function () {
+        var jcrop_api = null;
+        var x=0, y=0, w=0, h=0;
+        $("#avatar_form").submit(function() {
+            $("#btn-submit").prop('disabled', true);
+            $("#uploadProgressBar").show();
+            var fd = new FormData();
+            fd.append("headimg", document.getElementById('avatar_img').files[0]);
+            if(w == 0 || h ==0){
+                $.AlertBox({
+                    title: '提示',
+                    body: '请先在图片上拖动鼠标选区头像区域',
+                    color: "warning"
+                }).show();
+                $("#btn-submit").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+                return false;
+            }
+            fd.append("x", x+1);
+            fd.append("y", y+1);
+            fd.append("w", w);
+            fd.append("h", h);
+            $.GRestP({
+                url: '{% url 'account_save_user_avatar' user_session.user_id %}',
+                formdata: fd,
+                responseType: 'json',
+                success:function(data){
+                    $("#btn-submit").prop('disabled', false);
+                    $("#uploadProgressBar").hide();
+                    if(data.flag){
+                        $.AlertBox({
+                            title: '上传成功',
+                            body: '上传成功',
+                            color: "success",
+                            callback: function () {
+                                window.location.hash="#home";
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({
+                            color: "danger",
+                            title: '上传失败',
+                            body: data.msg
+                        }).show();
+                    }
+                },
+                error: function () {
+                    $("#btn-submit").prop('disabled', false);
+                    $("#uploadProgressBar").hide();
+                    $.AlertBox({
+                        color: "danger",
+                        title: '错误',
+                        body: '请求时发生错误'
+                    }).show();
+                },
+                abort: function () {
+                    $("#btn-submit").prop('disabled', false);
+                    $("#uploadProgressBar").hide();
+                },
+                progress: function (perc, loaded, total) {
+                    $("#uploadProgressBarBody").css('width', perc + "%").text(parseInt(perc) + "%");
+                }
+            }).upload();
+            return false;
+        });
+        function getValue(obj){
+            x = obj.x;
+            y = obj.y;
+            w = obj.w;
+            h = obj.h;
+        }
+        $("#avatar_img").change(function () {
+            if(jcrop_api != null){
+                jcrop_api.destroy();
+                jcrop_api = null;
+            }
+            var file = document.getElementById('avatar_img').files[0];
+            if(file != undefined){
+                if(file.type.indexOf('image') < 0 || file.size > 1024 * 1024) {
+                    document.getElementById('avatar_holder').src = "/static/images/headimg_placeholder.png" ;
+                    document.getElementById('avatar_holder').style.width =  'auto';
+                    document.getElementById('avatar_holder').style.height = 'auto';
+                    x=0, y=0, w=0, h=0;
+                    $.AlertBox({
+                        color: "danger",
+                        title: '错误',
+                        body: '不支持的文件格式或者文件太大，仅支持图片格式文件jpg、png，并且大小在 1MB 以内。'
+                    }).show();
+                    $("#btn-submit").prop('disabled', true);
+                    jcrop_api = null;
+                    return false;
+                }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var imgData = e.target.result;
+                    document.getElementById('avatar_holder').src = imgData;
+                    $("#avatar_holder").Jcrop({
+                        aspectRatio: 1,
+                        onSelect: getValue,
+                        onChange: getValue,
+                        minSize: [180, 180],
+                        boxWidth: 500
+                    }, function () {
+                        jcrop_api = this;
+                    });
+                    $("#btn-submit").prop('disabled', false);
+                };
+                reader.readAsDataURL(file);
+            }else{
+                document.getElementById('avatar_holder').src = "/static/images/headimg_placeholder.png" ;
+                document.getElementById('avatar_holder').style.width = 'auto';
+                document.getElementById('avatar_holder').style.height = 'auto';
+                x=0, y=0, w=0, h=0;
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '请选择图片'
+                }).show();
+                $("#btn-submit").prop('disabled', true);
+                jcrop_api = null;
+            }
+        });
+    });
+</script>

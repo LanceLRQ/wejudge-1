@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load friendly_time %}
+{% load full_time %}
+{% block page_title%}题目列表 - {{ contest.title }} - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    <ul class="pagination">
+        <li><a href="javascript:void(0)" id="btn-status-filter"><span class="glyphicon glyphicon-filter"></span>&nbsp;筛选</a></li>
+    </ul>
+    {{ pager }}
+    {% include "problem/status/list_body.html" %}
+    {{ pager }}
+</div>
+{% endblock %}
+{% block page_script %}
+<script type="text/javascript">
+    $(function () {
+        var url="{% url 'problem_judge_status_get_filter_page' %}?problem_id=$2&author_id=$3&flag=$4&author_type=$1";
+        $("#btn-status-filter").click(function () {
+           $.ModalBox({
+                title: '筛选评测结果',
+                mode: "url",
+                url: url.replace("$2", "{{ problem_id |default:'' }}").replace("$3", "{{ author_id|default:'' }}").replace("$4", "{{ flag }}").replace("$1", "{{ author_type }}"),
+                loaded: function () {
+                    $("#status_filter-form").attr("action", "{% url "contest_status" contest.id %}")
+                },
+                default_btn_action: function () {
+                    $("#status_filter-form").submit();
+                }
+           }).show();
+        });
+        $(".btn_contest_change_status").click(function () {
+            var id = $(this).attr("data-id");
+            $.ModalBox({
+                title: '修改评测结果',
+                mode: "url",
+                url: "{% url 'contest_mgr_change_status' contest.id 0 %}".replace("status/0", "status/" + id),
+                loaded: function () {
+                    $("#change_status_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if (flag) {
+                                    $.AlertBox({
+                                        body: "评测状态保存成功",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                } else {
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#change_status_form").submit();
+                }
+            }).show();
+        });
+    });
+</script>
+{% endblock %}

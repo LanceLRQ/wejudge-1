@@ -1,0 +1,31 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="head">
+    <div id="head-backphoto">
+        <img src="/static/guide/students/img/head.png" width="100%" height="100%">
+    </div>
+    <div id="square" style="position: absolute;left:287px;top:-12px;">
+        <img  src="/static/guide/students/img/虚线方框%20题库.png">
+    </div>
+</div>
+<div id="main">
+    <div>
+        <img src="/static/guide/students/img/main.png" width="100%" height="100%" style="filter:blur(5px);-webkit-filter: blur(5px);">
+    </div>
+    <div id="intro"style="position:absolute;left:287px;top:30px; display: none">
+        <img src="/static/guide/students/img/便签.png">
+        <p class="introduce">
+            根据在教学中心所选课程，你<br>
+            可以看到教师发布在该课程的<br>
+            作业信息。你要在作业系统上<br>
+            完成老师发布的作业，获得相<br>
+            应的成绩
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 4 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:172px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

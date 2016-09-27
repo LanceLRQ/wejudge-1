@@ -1,0 +1,39 @@
+<form id="asgn_setting_form" action="{% if setting_type != 'new' %}{% url 'asgn_mgr_save_asgn_setting' asgn.id %}{% else %}{% url 'asgn_mgr_save_new_asgn' course.id %}{% endif %}" method="post">
+    <div class="input-group">
+        <div class="input-group-addon">所属课程</div>
+        {% if setting_type != 'new' %}
+        <select name="course" value="{{ asgn.course.id }}" class="form-control">
+            <option value="">请选择</option>
+            {% for c in courseList %}
+            <option value="{{ c.id }}" {% if asgn.course.id == c.id %}selected{% endif %}>
+                {{ c.year }}-{{ c.year | add:1 }}年度第{{ c.term }}学期 - {{ c.name }} - 任课教师：{{ c.teacher.realname }}
+            </option>
+            {% endfor %}
+        </select>
+        {% else %}
+            <input type="text" readonly class="form-control" value="{{ course.year }}-{{ course.year | add:1 }}年度第{{ course.term }}学期 - {{ course.name }} - 任课教师：{{ course.teacher.realname }}">
+            <input name="course" type="hidden" value="{{ course.id }}">
+        {% endif %}
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">作业名称</div>
+        <input type="text" class="form-control" name="name" value="{{ asgn.name }}">
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">最高成绩</div>
+        <input type="text" class="form-control" name="full_score" value="{{ asgn.full_score }}">
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">作业备注</div>
+        <textarea class="form-control" name="remark" rows="5">{{ asgn.remark |default:"" }}</textarea>
+    </div><br />
+    <h4>评测语言设置</h4>
+    <hr />
+    <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in asgn.lang or 'all' in asgn.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in asgn.lang or 'all' in asgn.lang %}checked{% endif %}> C++&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="java" {% if 'java' in asgn.lang or 'all' in asgn.lang %}checked{% endif %}> Java
+    <hr/>
+    {% if setting_type != 'new' %}
+    <input type="submit" class="btn btn-success" value="保存设置">
+    {% endif %}
+</form>

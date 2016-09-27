@@ -1,0 +1,9 @@
+{% load full_time %}
+<div class="my-tab-container">
+
+    <h4>{{ message.title }}</h4>
+    <h5>发布时间：{{ message.time | full_time}}</h5>
+    <hr />
+    {{ message.content | safe }}<hr />
+    <a class="btn btn-primary" href="javascript:void(0)" onclick="window.location.reload()">返回通知列表</a>
+</div>

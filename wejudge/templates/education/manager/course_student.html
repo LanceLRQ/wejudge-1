@@ -1,0 +1,166 @@
+<div class="my-tab-container">
+    <form action="{% url 'education_mgr_add_course_students' course.id %}" method="post" id="add_students_form">
+        <div class="input-group">
+            <div class="input-group-addon">添加学生</div>
+            <textarea class="form-control" rows="3" name="new_studentids" id="new_studentids" placeholder="例如:15010300001,15010300002"></textarea>
+            <div class="input-group-addon">（学号，多个请用英文逗号分隔）</div>
+        </div><br>
+        <div class="input-group">
+            <div class="input-group-addon">上传名单</div>
+            <input type="file" name="upload_xls" id="upload_xls"  class="form-control">
+            <div class="input-group-btn">
+                <a class="btn btn-primary" href="/resource/xls_template/student_account_infos.xls">点击下载模板</a>
+            </div>
+        </div><br />
+        <div class="input-group">
+            <div class="input-group-addon">添加到排课</div>
+            <select name="arrangement" id="arrangement_sel" class="form-control">
+                {% for arr in arrangement %}
+                <option value="{{ arr.id }}">{{ arr.toString }}</option>
+                {% endfor %}
+            </select>
+        </div><br />
+
+        <input type="submit" id="add_students_form_btn" class="btn btn-success" value="添加"/>
+    </form>
+    <hr />
+    <div class="input-group">
+        <div class="input-group-addon">过滤器</div>
+        <select id="arrangement-filter" class="form-control">
+            <option value="0">全部排课</option>
+            {% for arr in arrangement %}
+            <option value="{{ arr.id }}" {% if arr_id == arr.id %}selected{% endif %}>{{ arr.toString }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br />
+    <form action="{% url 'education_mgr_change_course_students' course.id %}" method="post" id="students_form">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>学号</th>
+                    <th>姓名</th>
+                    <th>排课选择</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stu in students %}
+                    <tr>
+                        <td><input type="checkbox" class="bm-checkbox" name="action_ids" value="{{ stu.arrid }}|{{ stu.id }}"></td>
+                        <td>{{ stu.id }}</td>
+                        <td>{{ stu.realname}}</td>
+                        <td>{{ stu.arrangement }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" align="center">暂无选课学生</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="input-group">
+            <div class="input-group-addon">请选择操作</div>
+            <select name="action" id="" class="form-control">
+                {% for arr in arrangement %}
+                <option value="{{ arr.id }}">移动到：{{ arr.toString }}</option>
+                {% endfor %}
+                <option value="delete">移除学生</option>
+            </select>
+        </div>
+        <br>
+        <input class="btn btn-primary" value="执行操作" type="submit">
+    </form>
+</div>
+<script type="text/javascript">
+$(function () {
+    var $bm_form = $("#students_form");
+    $bm_form.find("#select-all").change(function () {
+        $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+    });
+    $bm_form.submit(function () {
+        $.ConfirmBox({
+            "title": "操作确认",
+            "body": "确定要执行这个操作吗？",
+            "color": "danger",
+            callback: function (flag) {
+                if (flag) {
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if (flag) {
+                                $.AlertBox({
+                                    title: "操作成功",
+                                    body: entity.msg,
+                                    color: "success",
+                                    callback: function () {
+                                        $("#arrangement-filter").change();
+                                    }
+                                }).show();
+                            } else {
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "操作失败"
+                                }).show();
+                            }
+                        }
+                    }).submit_form("#students_form");
+                }
+            }
+        }).show();
+        return false;
+    });
+    $("#arrangement-filter").change(function () {
+        var id = $(this).val();
+        $.GRestP({
+            callback: function (flag, entity) {
+                if(flag){
+                    $("#students").html(entity);
+                }
+            }
+        }).call('{% url 'education_mgr_course_student' course.id %}?arr_id='+id);
+    });
+    $("#add_students_form").submit(function() {
+
+        $("#add_students_form_btn").prop('disabled', true);
+        var fd = new FormData();
+        fd.append("upload_xls", document.getElementById('upload_xls').files[0]);
+        fd.append("new_studentids", $('#new_studentids').val());
+        fd.append("arrangement", $("#arrangement_sel").val());
+        $.GRestP({
+            url: '{% url 'education_mgr_add_course_students' course.id %}',
+            formdata: fd,
+            responseType: 'json',
+            success:function(data){
+                $("#add_students_form_btn").prop('disabled', false);
+                if(data.flag){
+                    $.AlertBox({
+                        title: '操作成功',
+                        body: data.msg,
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        color: "danger",
+                        title: '操作失败',
+                        body: data.msg
+                    }).show();
+                }
+            },
+            error: function () {
+                $("#add_students_form_btn").prop('disabled', false);
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '请求时发生错误'
+                }).show();
+            }
+        }).upload();
+        return false;
+    });
+});
+</script>

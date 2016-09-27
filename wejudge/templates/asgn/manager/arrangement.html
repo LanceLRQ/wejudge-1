@@ -1,0 +1,82 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% block asgn_page_title%}访问权限管理{% endblock %}
+{% block asgn_page_body %}
+<h3>访问权限管理</h3>
+<hr>
+<form action="{% url 'asgn_mgr_save_asgn_arrangement' asgn.id %}" method="post" id="arrangement_form">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>排课名称</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for arr in access_list %}
+        <tr>
+            <td style="vertical-align: middle"><input type="checkbox" name="aids" class="bm-checkbox" value="{{ arr.id }}" {% if arr.enabled %}checked{% endif %}></td>
+            <td style="vertical-align: middle">{{ arr.arrangement.toString }}</td>
+            <td>
+                <input name="start_time_{{ arr.id }}" type="text" class="form-control start_time" value="{% if arr.start_time != 0 %}{{ arr.start_time | full_time }}{% else %}{{ arr.arrangement.start_time| full_time:"creater" }}{% endif %}">
+            </td>
+            <td>
+                 <input name="end_time_{{ arr.id }}" type="text" class="form-control end_time" value="{% if arr.end_time != 0  %}{{ arr.end_time | full_time}}{% else %}{{ arr.arrangement.end_time| full_time:"creater" }}{% endif %}">
+            </td>
+        </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4">还没有排课信息</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;操作须知：在某个排课信息左侧勾选后，该排课的所有学生按照右边设置的时间对作业进行访问；未勾选则该排课学生不能访问作业。<br /><br />
+    <button class="btn btn-success">保存</button>
+</form>
+{% endblock %}
+{% block asgn_page_script %}
+<link rel="stylesheet" href="/static/library/bootstrap-datetimepicker.min.css"/>
+<script src="/static/library/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+$(function () {
+    $(".start_time, .end_time").datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',
+        minuteStep: 1,
+        autoclose: true,
+        todayHighlight:true,
+        todayBtn:true
+    });
+    var $bm_form = $("#arrangement_form");
+    $bm_form.find("#select-all").change(function () {
+        $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+    });
+    $bm_form.submit(function() {
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if (flag) {
+                    $.AlertBox({
+                        title: "操作成功",
+                        body: "保存成功",
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                } else {
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "操作失败"
+                    }).show();
+                }
+            }
+        }).submit_form(this);
+        return false;
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% load role_named %}
+{% load language_called %}
+<div class="my-tab-container">
+    <form id="user_modify_form" action="{% url 'account_save_user_modify' user_session.user_id %}" method="post">
+        <div class="input-group">
+            <div class="input-group-addon">用户名</div>
+            <input class="form-control" readonly type="text" value="{{ user_session.user_id }}"/>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">用户角色</div>
+            <input class="form-control" readonly type="text" value="{{ user_session.user_role | role_named }}"/>
+        </div>
+        <hr/>
+        <h4>需要修改密码请填写原密码，不修改则留空</h4>
+        <div class="input-group">
+            <div class="input-group-addon">原密码</div>
+            <input class="form-control" name="old_pwd" type="password"/>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">新密码</div>
+            <input class="form-control" name="new_pwd" type="password"/>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">重复新密码</div>
+            <input class="form-control" name="re_pwd" type="password"/>
+        </div>
+        <hr/>
+        <div class="input-group">
+            <div class="input-group-addon">*昵称</div>
+            <input class="form-control" name="nickname" maxlength="12" type="text" value="{{ user_session.user_nickname|default:"" }}"/>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">真实姓名</div>
+            <input class="form-control" readonly type="text" value="{{ user_session.user_realname }}"/>
+        </div>
+        <br>
+        <div class="input-group {% if user_session.user_email_validated %}has-success{% else %}has-error{% endif %}">
+            <div class="input-group-addon">*Email</div>
+            <input class="form-control" name="email" type="text" value="{{ user_session.user_email|default:"" }}"/>
+            {% if not user_session.user_email_validated and user_session.user_email != None and user_session.user_email != '' %}
+            <div class="input-group-btn">
+                <a href="javascript:void(0)" onclick="do_vaild_email();" class="btn btn-danger">点击验证邮箱</a>
+            </div>
+            {% endif %}
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">个人简介<br />(建议不超过50个字）</div>
+            <textarea name="motto" rows="5" class="form-control">{{ user_session.user_motto | default:"" }}</textarea>
+        </div>
+        <hr />
+        <div class="input-group">
+            <div class="input-group-addon">常用编程语言</div>
+            <select name="language" class="form-control">
+                {% for lang in lang_provider %}
+                <option value="{{ lang }}" {% if user_session.preference_language == lang %}selected{% endif %}>{{ lang | language_called }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <hr>
+        <input type="submit" value="保存设置" class="btn btn-primary"/>
+        <input type="reset" value="重置设置" class="btn btn-danger"/>
+    </form>
+</div>
+<script type="text/javascript">
+    $(function () {
+       $("#user_modify_form").submit(function() {
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if (flag) {
+                        $.AlertBox({
+                            title: "操作成功",
+                            body: "用户资料保存成功",
+                            color: "success",
+                            callback: function () {
+                                window.location.reload();
+                            }
+                        }).show();
+                    } else {
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "操作失败"
+                        }).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+       });
+    });
+</script>

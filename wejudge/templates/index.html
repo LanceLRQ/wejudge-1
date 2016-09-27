@@ -1,0 +1,345 @@
+{% load full_time %}
+<!DOCTYPE html>
+<html>
+<head lang="zh-CN">
+    <meta charset="UTF-8">
+    <title>{% block page_title %}{% endblock %}{{ web_config.web_title }}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ web_config.web_desc }}" />
+    <meta name="keywords" content="{{ web_config.web_keyword }}" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="/static/library/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.grestp.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.modalbox.js"></script>
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="/static/library/fuckie.js"></script>
+    <![endif]-->
+    <style type="text/css">
+        html{
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+        body{
+            font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei',Arial,sans-serif;
+            background-color: #555 !important;
+            line-height:20px;
+            height: 100%;
+        }
+        #main_container{
+            min-height:100%;
+            height: auto !important;
+            height: 100%;
+        }
+        #main_body{
+            width: 280px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+        #main_footer{
+            width:100%;
+            text-align: center;
+            position: relative;
+            margin-top: -30px;
+            height: 30px;
+            clear: both;
+            color: #fff;
+        }
+        #main_header{
+            padding-top: 90px;
+        }
+        #logo_layout{
+            text-align: center;
+            color: #fff;
+        }
+        .input_group {
+            margin-bottom: 20px;
+        }
+        .input_group > input{
+            border: 1px solid #ddd;
+            display: block;
+            height: 50px;
+            width: 100%;
+            margin: -1px auto 0px auto;
+            padding: 15px;
+            font-size: 1em;
+            font-weight: bold;
+            outline: none;
+        }
+        .input_group > input:first-child{
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .input_group > input:last-child{
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+        label{
+            font-weight: inherit;
+            color: #fff;
+        }
+        #panel-nav{
+            padding-bottom: 20px;
+        }
+        .large-header{
+            position: fixed;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            $("#nav-login").click(function () {
+                $(this).addClass('active');
+                $("#nav-reg").removeClass('active');
+                $("#nav-reg-stu").removeClass('active');
+                $("#login_panel").show();
+                $("#register_panel").hide();
+                $("#reg_stu_panel").hide();
+            });
+            $("#nav-reg").click(function () {
+                $(this).addClass('active');
+                $("#nav-login").removeClass('active');
+                $("#nav-reg-stu").removeClass('active');
+                $("#login_panel").hide();
+                $("#reg_stu_panel").hide();
+                $("#register_panel").show();
+            });
+            $("#nav-reg-stu").click(function () {
+                $(this).addClass('active');
+                $("#nav-login").removeClass('active');
+                $("#nav-reg").removeClass('active');
+                $("#login_panel").hide();
+                $("#reg_stu_panel").show();
+                $("#register_panel").hide();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="large-header" class="large-header">
+        <canvas id="demo-canvas"></canvas>
+    </div>
+    <div id="main_container">
+        <div id="main_header">
+            <div id="logo_layout">
+                <img src="/static/images/logo_flat.png" alt="" height="70"><br />
+                <span style="font-size: 1.2em; font-weight: 500; letter-spacing: 2px; line-height: 3.2em;">在线程序代码评测辅助教学系统</span>
+            </div>
+        </div>
+        <div id="main_body">
+            <div class="btn-group btn-group-justified" id="panel-nav">
+                <a class="btn btn-default active" id="nav-login">登录</a>
+                <a class="btn btn-default" id="nav-reg-stu">学生注册</a>
+                <a class="btn btn-default" id="nav-reg">注册</a>
+            </div>
+            <div id="login_panel">
+                <form action="{% url 'account_api_check_login' %}" method="post" id="login_form">
+                    <div class="input_group">
+                        <input type="text" name="user" id="login_user" tabindex="1" placeholder="用户名/学号/教师工号">
+                        <input type="password" name="password" tabindex="2" placeholder="用户密码">
+                    </div>
+                    <input type="hidden" name="referer" value="{{ referer }}">
+                    <button type="submit" class="btn btn-success btn-block btn-lg" tabindex="3" title="游客账号是：guest；密码是：wejudge">登录</button>
+                    <a href="javascript:void(0)" class="btn btn-block btn-default" id="btn_call_wx_login"><img src="/static/images/icon32_wx_logo.png" title="使用微信扫一扫登录（需要注册并绑定微信后）"> 使用微信扫一扫登录</a>
+                    <br />
+                    <div>
+                        <label for="#rememberme"><input type="checkbox" id="#rememberme" name="rememberme" value="1"> 记住登录</label>
+                        <a href="javascript:void(0)" id="forget_pwd" style="float: right; color: #fff">忘记密码</a>
+                    </div>
+                    <br />
+                    </form>
+            </div>
+            <div id="register_panel" style="display: none;">
+                <form id="register_form"  method="post" action="{% url 'account_save_register' %}">
+                    <div class="input_group">
+                        <input  type="text" name="username" tabindex="1" placeholder="请输入用户名">
+                        <input type="password" name="password" tabindex="2" placeholder="请输入用户密码">
+                        <input type="password" name="repassword" tabindex="3" placeholder="请再次输入用户密码">
+                        <input type="text" name="nickname" tabindex="4" placeholder="请取一个好听的昵称" maxlength="12">
+                        <input type="text" name="email" tabindex="5" placeholder="请输入你的邮箱">
+                    </div>
+                    {% if web_config.web_register %}
+                    <button id="reg-submit-btn" type="submit" class="btn btn-success btn-block btn-lg" tabindex="6">注册</button>
+                    {% else %}
+                    <button type="button" class="btn btn-success btn-block btn-lg" disabled tabindex="6">未开放注册</button>
+                    {% endif %}
+                    <br />
+                    <div style="color: #fff;text-align: center" ><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;通过此页面注册并不能成为学生账号！</div>
+                </form>
+            </div>
+            <div id="reg_stu_panel" style="display: none;">
+                <form action="{% url 'account_save_register_student' %}" method="post" id="reg_stu_form">
+                    <div class="input_group">
+                        <input type="text" name="user" tabindex="1" placeholder="学号">
+                        <input type="password" name="password" tabindex="2" placeholder="教务密码">
+                    </div>
+                    <button id="reg-stu-btn" type="submit" class="btn btn-success btn-block btn-lg" tabindex="3">验证并注册</button>
+                </form><br />
+                <div style="color: #fff;text-align: center" ><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;将验证北师珠教务系统的登录，由于教务存在输错密码5分钟等待机制，请不要频繁使用！出现验证异常请稍等再使用或者联系管理员添加账号。</div>
+            </div>
+        </div>
+        <div id="wx_login_panel" align="center" style="width: 80%; height:300px; max-width:400px; margin: 0px auto 0px auto; padding: 5px; display: none;">
+            <div id="wx_login_container"></div>
+            <a href="javascript:void(0);" class="btn btn-default" onclick="$('#main_body').show();$('#main_body').hide();">返回普通登录</a>
+        </div>
+    </div>
+    <div id="main_footer">
+        &copy; 2015-2016 WeJudge By BNUZ-LanceLRQ
+        <span class="hidden-sm hidden-xs">
+         &nbsp;&nbsp;
+        网站版本：<a href="http://www.lanrongqi.com/wejudge-whats-new/" style="text-decoration: underline;">Ver.{{ web_config.web_version }}</a>&nbsp;&nbsp;
+        服务器时间：{{ web_config.server_time | full_time }}
+        </span>
+    </div>
+    <!--消息模态框-->
+    <div class="modal fade" id="alertbox" tabindex="-2" role="dialog" data-backdrop="static">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title text-primary"><span id="alertbox-title">提示</span></h4>
+          </div>
+          <div class="modal-body text-primary">
+            <span id="alertbox-body">&nbsp;</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="alertbox-no-btn">否</button>
+            <button type="button" class="btn btn-primary" id="alertbox-yes-btn">是</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--End 消息模态框-->
+    <script type="text/javascript" src="/static/library/index_bg/rAF.js"></script>
+    <script type="text/javascript" src="/static/library/index_bg/EasePack.min.js"></script>
+    <script type="text/javascript" src="/static/library/index_bg/TweenLite.min.js"></script>
+    <script type="text/javascript" src="/static/library/index_bg/main.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            WeJudge.login_form_bind("#login_form");
+
+            $("#btn_call_wx_login").click(function () {
+                $("#main_body").hide();
+                $("#wx_login_panel").show();
+                jQuery.getScript("https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js",  function (response,status) {
+                    var obj = new WxLogin({
+                        id:"wx_login_container",
+                        appid: "wx667fa851b07ee0ae",
+                        scope: "snsapi_login",
+                        redirect_uri: "https://oj.bnuz.edu.cn/wechat/api/oauth2/callback",
+                        state: "login",
+                        style: "white",
+                        href: ""
+                    });
+                });
+            });
+            $("#register_form").submit(function() {
+                $("#reg-submit-btn").text("注册请求中，请稍等...").prop("disabled", true);
+                $.GRestP({
+                    responseType: 'json',
+                    callback: function (flag, entity) {
+                        $("#reg-submit-btn").text("注册").prop("disabled", false);
+                        if (flag) {
+                            $.AlertBox({
+                                title: "操作成功",
+                                body: "注册成功，请登录",
+                                color: "success",
+                                callback: function () {
+                                    document.getElementById("register_form").reset();
+                                    $("#nav-login").click()
+                                }
+                            }).show();
+                        } else {
+                            $.AlertBox({
+                                body: entity.msg,
+                                color: "danger",
+                                title: "操作失败"
+                            }).show();
+                        }
+                    }
+                }).submit_form(this);
+                return false;
+            });
+            $("#reg_stu_form").submit(function() {
+                $("#reg-stu-btn").text("教务核验请求中，请稍等...").prop("disabled", true);
+                $.GRestP({
+                    responseType: 'json',
+                    callback: function (flag, entity) {
+                        $("#reg-stu-btn").text("验证并注册").prop("disabled", false);
+                        if (flag) {
+                            $.AlertBox({
+                                title: "操作成功",
+                                body: "注册成功，请登录",
+                                color: "success",
+                                callback: function () {
+                                    document.getElementById("reg_stu_form").reset();
+                                    $("#nav-login").click()
+                                }
+                            }).show();
+                        } else {
+                            $.AlertBox({
+                                body: entity.msg,
+                                color: "danger",
+                                title: "操作失败"
+                            }).show();
+                        }
+                    }
+                }).submit_form(this);
+                return false;
+            });
+            var hook = false;
+            $("#forget_pwd").click(function () {
+                var user = $("#login_user").val();
+                if(user==''){
+                    $.AlertBox({
+                        body: "请现在上方“用户名”一栏填写需要找回密码的用户名",
+                        color: "warning",
+                        title: "提示",
+                        callback: function () {
+                            $("#login_user").focus();
+                        }
+                    }).show();
+                    return false;
+                }else{
+                    $.ConfirmBox({
+                        title: '密码找回',
+                        body: '您正在为账号 '+user+ ' 找回密码，我们将要向该用户绑定的邮箱发送一封邮件，是否继续？',
+                        callback: function (flag) {
+                            if(flag){
+                                if(hook) return;
+                                hook = true;
+                                $.GRestP({
+                                    responseType: 'json',
+                                    callback: function (flag, entity) {
+                                        hook = false;
+                                        if (flag) {
+                                            $.AlertBox({
+                                                title: "操作成功",
+                                                body: entity.msg,
+                                                color: "success"
+                                            }).show();
+                                        } else {
+                                            $.AlertBox({
+                                                body: entity.msg,
+                                                color: "danger",
+                                                title: "操作失败"
+                                            }).show();
+                                        }
+                                    }
+                                }).call('{% url 'account_find_pwd_start' %}?user=' + user);
+                            }
+                        }
+                    }).show()
+                }
+            });
+        });
+    </script>
+</body>
+</html>

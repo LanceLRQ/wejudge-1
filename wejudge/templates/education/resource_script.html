@@ -1,0 +1,275 @@
+<script type="text/javascript">
+    function jumpToPath(Path){
+        var path = $("#nowPath").html();
+        path += Path;
+        window.location.href = '?path=' + path
+    }
+    function jumpToParent(){
+        var path = $("#nowPath").html();
+        path = path.substring(0, path.lastIndexOf('/'));
+        window.location.href = '?path=' + path
+    }
+    {% if user_session.user_role >= 2 %}
+    $(function () {
+        $("#btn-new-repo").click(function () {
+            $.ModalBox({
+                mode: "html",
+                html: '<form id="form-new-repo" method="post"><div class="input-group"><div class="input-group-addon">仓库名称</div><input class="form-control" name="repo_name" maxlength="30"/></div></form>',
+                title: "新建仓库",
+                loaded: function () {
+                    $("#form-new-repo").submit(function () {
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "仓库创建成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).submit_form(this, "{% url "education_save_new_repository" %}");
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#form-new-repo").submit();
+                }
+            }).show();
+        });
+    });
+    {% endif %}
+    {% if user_session.user_role >= 2 and  repository != None %}
+    function del(path){
+        $.ConfirmBox({
+            body: '确定要删除此文件吗？数据不可恢复！',
+            title: '风险操作',
+            color: 'danger',
+            callback: function (flag) {
+                if (flag) {
+                    $.GRestP({
+                        url: '{% url 'education_repository_delete_files' repository.handle %}?path=' + path,
+                        method: "GET",
+                        responseType: "json",
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    title: "操作成功",
+                                    body: "删除文件/文件夹成功！",
+                                    color: "success",
+                                    callback: function () {
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "操作失败"
+                                }).show();
+                            }
+                        }
+                    }).call();
+                }
+            }
+        }).show();
+    }
+
+    function upload(){
+        $("#uploadFileBtn").prop('disabled', true);
+        $("#uploadProgressBar").show();
+        var fd = new FormData();
+        fd.append("uploadFile", document.getElementById('uploadFile').files[0]);
+        fd.append("path", $("#form-path").val());
+        $.GRestP({
+            url: '{% url 'education_repository_upload_file' repository.handle %}',
+            formdata: fd,
+            responseType: 'json',
+            success:function(data){
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+                if(data.flag){
+                    $.AlertBox({
+                        title: '上传成功',
+                        body: '上传成功',
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        color: "danger",
+                        title: '上传失败',
+                        body: data.msg
+                    }).show();
+                }
+            },
+            error: function () {
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '请求时发生错误'
+                }).show();
+            },
+            abort: function () {
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+            },
+            progress: function (perc, loaded, total) {
+                $("#uploadProgressBarBody").css('width', perc + "%").text(parseInt(perc) + "%");
+            }
+        }).upload();
+    }
+    $(function () {
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+           $('#uploadFile').on("change", function () {
+               var f = document.getElementById('uploadFile').files[0];
+               if (f == undefined) {
+                   $("#uploadFileBtn").prop('disabled', true);
+                   return;
+               }
+               var fsize = f.size;
+               var ftype = f.type;
+               if (fsize == 0) {
+                   $.AlertBox({
+                        color: "danger",
+                        title: '错误',
+                        body: '文件内容为空'
+                    }).show();
+                    $("#uploadFileBtn").prop('disabled', true);
+                   return;
+               }
+               if (fsize > 1048576 * 1024) {
+                   $.AlertBox({
+                        color: "danger",
+                        title: '错误',
+                        body: '由于服务器硬盘空间大小限制，需要上传超过1024M的文件请于管理员联系！'
+                    }).show();
+                   $("#uploadFileBtn").prop('disabled', true);
+                   return;
+               }
+               $("#uploadFileBtn").prop('disabled', false);
+           });
+           $("#uploadFileBtn").click(upload)
+        }
+        $("#btn-new-folder").click(function () {
+            $.ModalBox({
+                mode: "html",
+                html: '<form id="form-new-folder" method="post"><div class="input-group"><div class="input-group-addon">文件夹名称</div><input class="form-control" name="folder_name" maxlength="30"/></div><input type="hidden" name="path" value="$1"></form>'.replace("$1", "{{ path }}"),
+                title: "新建文件夹",
+                loaded: function () {
+                    $("#form-new-folder").submit(function () {
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "文件夹创建成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).submit_form(this, "{% url "education_repository_new_folder" repository.handle %}");
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#form-new-folder").submit();
+                }
+            }).show();
+        });
+        $("#btn-change-repo").click(function () {
+            var title = $(this).attr("data-title");
+            $.ModalBox({
+                mode: "html",
+                html: '<form id="form-change-repo" method="post"><div class="input-group"><div class="input-group-addon">仓库名称</div><input class="form-control" name="repo_name" maxlength="30" value="$1"/></div></form>'.replace("$1", title),
+                title: "修改仓库信息",
+                loaded: function () {
+                    $("#form-change-repo").submit(function () {
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "仓库信息修改成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).submit_form(this, "{% url "education_save_modify_repository" repository.handle %}");
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#form-change-repo").submit();
+                }
+            }).show();
+        });
+        $("#btn-delete-repo").click(function () {
+            $.ConfirmBox({
+                title: "删除教学资源仓库",
+                color: "danger",
+                body: "您确定要删除这个教学资源仓库吗？<br /><br />一旦执行，仓库内所有文件都将会被删除，不能找回！",
+                callback: function (flag) {
+                    if(flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "教学资源仓库删除成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.href = '{% url 'education_repository_index' %}';
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'education_delete_repository' repository.handle %}');
+                    }
+                }
+            }).show();
+        });
+    });
+    {% endif %}
+</script>

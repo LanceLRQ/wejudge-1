@@ -1,0 +1,40 @@
+{% load language_called %}
+{% if contest != None %}
+{% load cproblem_index %}
+{% endif %}
+<h3>{% if contest != None %}{{ cproblem.index | cproblem_index }}{% else %}{{ problem.id }}{% endif %}. {{ problem.title }}　</h3>
+<h4>
+    <small>
+        时间限制：{{ problem.c_time_limit }}/{{ problem.java_time_limit }}ms (C & C++ / Java)&nbsp;&nbsp;
+        内存限制：{{ problem.c_memory_limit }}/{{ problem.java_memory_limit }}KB (C & C++ / Java)&nbsp;&nbsp;
+        语言支持：{% for lang in language_provider %}{{ lang | language_called }}{% if not forloop.last %} / {% endif %}{% endfor %}
+    </small>
+</h4>
+<hr />
+<ul class="nav nav-tabs" role="tablist" style="margin: 0 auto;">
+        {% if contest != None %}
+            <li role="presentation"><a href="{% url 'contest_problems_list' contest.id %}">返回列表</a></li>
+        {% endif %}
+        <li role="presentation" class="active"><a href="#home" id="tab-btn-home" data-toggle="tab" role="tab">题目内容</a></li>
+        <li role="presentation"><a href="#submit" id="tab-btn-submit" data-toggle="tab" role="tab">提交代码</a></li>
+        {% if contest == None %}<li role="presentation"><a href="#history" id="tab-btn-history" data-toggle="tab" role="tab">评测历史</a></li>{% endif %}
+        <!--li role="presentation"><a href="#faq" id="tab-btn-faq" data-toggle="tab" role="tab">讨论板块</a></li-->
+</ul>
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="home">
+        <div class="my-tab-container">
+        {% include "problem/problem/body_content.html" %}
+        </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="submit">
+        {% include "problem/problem/body_submit.html" %}
+    </div>
+    {% if contest == None %}
+    <div role="tabpanel" class="tab-pane" id="history">
+        <div class="my-tab-container">
+        {% include "problem/problem/body_history.html" %}
+        </div>
+    </div>
+    {% endif %}
+    <!--div role="tabpanel" class="tab-pane" id="faq">...d</div-->
+</div>

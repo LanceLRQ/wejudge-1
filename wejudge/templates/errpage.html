@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load errpage_randimg %}
+{% block page_title %}您的操作遇到了一些问题 - {% endblock %}
+{% block page_body %}
+    <div class="panel panel-danger" style="width: 90%;max-width: 500px ;margin: 30px auto;">
+        <div class="panel-heading" align="center">
+            <h3>您的操作遇到了一些问题</h3>
+        </div>
+        <div class="panel-body" align="center"><img src="{{ '' | errpage_randimg }}" height="240"></div>
+        <div class="panel-body" align="center">
+            <h4>{{ errbody.msg }} </h4><br />错误代码：{{ errbody.code }}<br /><br /><br />
+            {% if errbody.action == 0 %}
+                <a class="btn btn-{{ errbody.alert_level }}" href="{{ errbody.jump_url }}">{{ errbody.wait_time }}秒后如果程序没有自动跳转请点这里</a>
+            {% elif errbody.action == 1 %}
+                <a class="btn btn-{{ errbody.alert_level }}" href="javascript:window.history.go(-1);">{{ errbody.wait_time }}秒后如果程序没有自动跳转请点这里</a>
+            {% endif %}
+        </div>
+    </div>
+
+{% if errbody.wait_time != 0 %}
+<script>
+    $(function () {
+        var time = {{ errbody.wait_time }};
+        var proc = 0;
+        var timer = setInterval(function(){
+            proc++;
+            if(proc > time){
+                {% if errbody.action == 0 %}
+                window.location.href = '{{ errbody.jump_url }}';
+                {% elif errbody.action == 1 %}
+                window.history.go(-1);
+                {% endif %}
+            }
+        }, 1000);
+    });
+</script>
+{% endif %}
+{% endblock %}

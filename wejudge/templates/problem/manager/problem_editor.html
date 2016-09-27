@@ -1,0 +1,92 @@
+<form action="" id="form-save-problem" method="post">
+    <div class="input-group">
+        <span class="input-group-addon">*标题</span>
+        <input name="title" type="text" class="form-control" placeholder="此题目的标题，建议50字内" maxlength="50" value="{{ problem.title }}">
+        <div class="dropdown input-group-btn">
+            <button class="btn btn-default dropdown-toggle" type="button" id="difficutly_dropdown" data-toggle="dropdown">
+                <span id="difficutly_dropdown_title">题目难度</span><span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right" id="difficutly_dropdown">
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="0">未分级</a></li>
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="1">入门</a></li>
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="2">简单</a></li>
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="3">一般</a></li>
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="4">较难</a></li>
+                <li><a href="javascript:void(0)" class="btn-difficutly" dat-value="5">困难</a></li>
+            </ul>
+            <input type="hidden" name="difficulty" id="form-difficulty" value="0"/>
+        </div>
+    </div>
+    <!--div class="form-inline">
+        <div class="input-group">
+            <div class="input-group-addon">分类设置</div>
+            <div class="input-group-addon"><select id="tag_level" class="form-control"></select></div>
+        </div>
+        <input type="hidden" name="tag" id="form-tag" value=""/>
+    </div-->
+    <h3>*问题描述</h3>
+    <textarea name="description" id="editor_description" placeholder="问题描述">{{ problem.description }}</textarea><br />
+    <h3>*输入要求</h3>
+    <textarea name="input" id="editor_input" placeholder="输入要求">{{ problem.input }}</textarea><br />
+    <h3>*输出要求</h3>
+    <textarea name="output" id="editor_output" placeholder="输出要求">{{ problem.output }}</textarea><br />
+    <h3>*样例输入</h3>
+    <textarea name="sample_input" id="editor_sample_input" placeholder="样例输入">{{ problem.sample_input }}</textarea><br />
+    <h3>*样例输出</h3>
+    <textarea name="sample_output" id="editor_sample_output" placeholder="样例输出">{{ problem.sample_output }}</textarea><br />
+    <h3>小提示</h3>
+    <textarea name="hint" id="editor_hint" placeholder="小提示">{{ problem.hint }}</textarea><br />
+    <h3>来源</h3>
+    <textarea name="source" class="form-control" placeholder="来源">{{ problem.source }}</textarea><br />
+    <hr >
+    <h3>评测设置</h3>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon">C/C++时间限制(需要大于1000ms)</span>
+                <input type="text" name="c_time_limit" class="form-control" value="{{ problem.c_time_limit |default:1000 }}"/>
+                <span class="input-group-addon">毫秒（ms）</span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon">Java时间限制(需要大于2000ms)</span>
+                <input type="text" name="java_time_limit" class="form-control" value="{{ problem.java_time_limit | default:2000 }}"/>
+                <span class="input-group-addon">毫秒（ms）</span>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon">C/C++内存限制(需要大于32786KB)</span>
+                <input type="text" name="c_memory_limit" class="form-control" value="{{ problem.c_memory_limit | default:32786 }}"/>
+                <span class="input-group-addon">KB</span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon">Java内存限制(需要大于262144KB)</span>
+                <input type="text" name="java_memory_limit" class="form-control" value="{{ problem.java_memory_limit | default:262144 }}"/>
+                <span class="input-group-addon">KB</span>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon"><label>禁止他人访问此题目(慎用，仅对公共题库有效) <input type="checkbox" name="is_private" value="1" {% if problem.is_private %}checked{% endif %}/></label></span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="input-group">
+                <span class="input-group-addon"><label>禁止他人修改题目、测试数据 <input type="checkbox" name="disable_edit_by_other" value="1" {% if problem.disable_edit_by_other %}checked{% endif %}/></label></span>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+    <input type="submit" value="保存题目" class="btn btn-success" id="btn-save-change"/>
+</form>

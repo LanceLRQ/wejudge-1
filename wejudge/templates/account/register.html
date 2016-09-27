@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block page_title %}注册 - {% endblock %}
+{% block page_head %}
+    <style type="text/css">
+    .page_body{
+        background: transparent !important;
+    }
+    .footer-diy{
+        display: none;
+    }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div style="width: 80%; height:300px; max-width:400px; margin: 100px auto 100px auto; padding: 5px;">
+    <div class="panel panel-info animated" id="panel-form">
+        <div class="panel-heading">
+            用户注册
+        </div>
+        <div class="panel-body">
+            <form name="register_form" id="register_form" method="post" action="{% url 'account_save_register' %}">
+                <div class="input-group">
+                  <span class="input-group-addon">*学号</span>
+                  <input name="username" type="text" class="form-control" placeholder="请输入10位数字的学号" maxlength="10">
+                </div><br/>
+                <div class="input-group">
+                  <span class="input-group-addon">*教务密码</span>
+                  <input name="password" type="password" class="form-control" placeholder="请输入您在教务系统的密码，校验成功后将作为本站登陆密码。" maxlength="20">
+                </div><br/>
+                <div class="input-group">
+                  <span class="input-group-addon">昵称</span>
+                  <input name="nickname" type="text" class="form-control" placeholder="请输入账户的昵称" maxlength="12">
+                </div><br/>
+                <div align="center">
+                  <button id="submit-btn" type="submit" class="btn btn-primary">确认注册</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $("#register_form").submit(function() {
+            $("#submit-btn").text("确认中，请稍等...").prop("disabled", true);
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    $("#submit-btn").text("确认注册").prop("disabled", false);
+                    if (flag) {
+                        $.AlertBox({
+                            title: "操作成功",
+                            body: "注册成功，请登录",
+                            color: "success",
+                            callback: function () {
+                                window.location.href = "{% url 'account_login' %}";
+                            }
+                        }).show();
+                    } else {
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "操作失败"
+                        }).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+    </script>
+{% endblock %}

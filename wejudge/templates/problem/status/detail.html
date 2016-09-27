@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load desc_status_flag %}
+{% load get_attr %}
+{% load judge_lang_called %}
+{% block page_title %}评测机报告 - {% endblock %}
+{% block page_head %}
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="/static/jsdifflib/diffview.css">
+    <style type="text/css">
+        .CodeMirror{
+            border: 1px solid #ddd;
+            border-top: 0;
+            height: 400px;
+        }
+        .diff-cp-contianer{
+            height: 400px;
+            overflow: auto;
+            width: 100%;
+        }
+        .tr-min-width-100{
+            min-width: 100px;;
+        }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>评测机报告 <small>/ Status ID:{{ status.id }}, Problem ID: <a href="{% url 'problem_show' status.problem.id %}">{{ status.problem.id }}</a></small></h1>
+</div>
+<div class="page_container">
+    <div class="alert alert-{{ result.exitcode | desc_status_flag | get_attr:"color" }}">
+        <h4>评测结果：{{ result.exitcode | desc_status_flag | get_attr:"title" }}</h4>
+        提交者：<a href="{% url 'account_space' status.author.id %}">{{ status.author.nickname }}{% if status.author.realname != None and  status.author.realname != '' %}({{ status.author.realname }}){% endif %}</a>，
+        评测语言：{{ status.lang | judge_lang_called }}
+        {% if result.exitcode == 0 or result.exitcode == 1 or result.exitcode == 4 or result.exitcode == 5 or result.exitcode == 6 %}
+        ，运行总时间：{{ result.timeused }}ms，
+        最大内存使用：{{ result.memused }}KB
+        {% endif %}
+        {% if result.ce_info != None %}
+            <hr>
+            <pre>{{ result.ce_info | safe }}</pre>
+        {% endif %}
+    </div>
+
+
+    {% if detail != None %}
+        {% for item in detail%}
+
+            <div class="panel panel-{{ item.result| desc_status_flag | get_attr:"color" }}">
+                <div class="panel-heading">
+                    <span class="panel-title">
+                        {{ item.name }}&nbsp;
+                        ({{ item.handle }})
+                    </span>
+                </div>
+                {% if item.result == 0 or item.result == 1 or item.result == 4 or item.result == 6 %}
+                    {% if item.forbidden != True  %}
+                    {% if item.outdata == None %}
+                         <div class="panel-body">
+                            <strong>{% if item.too_large == True %}测试数据超过100KB，无法通过当前页面显示{% else %}运行数据因过期已被清理{% endif %}</strong>
+                         </div>
+                    {% elif item.outdata == '' %}
+                        <div class="panel-body">
+                            <strong>您的程序没有输出任何数据</strong>
+                         </div>
+                    {% else %}
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <ul class="nav nav-tabs">
+                                        <li role="presentation" class="active"><a href="#">输入</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-sm-8">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                        <li role="presentation" class="active"><a href="#td-{{ item.handle }}-diff-compare" class="btn-td-out-diff-compare" data-handle="{{ item.handle }}" role="tab" data-toggle="tab">标准对比</a></li>
+                                        <li role="presentation"><a href="#td-{{ item.handle }}-raw-compare" class="btn-td-out-raw-compare" data-handle="{{ item.handle }}" role="tab" data-toggle="tab">原始数据对比</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><textarea id="td-{{ item.handle }}-in" class="form-control testdata-in-area" rows="20" readonly>{{ item.in }}</textarea></div>
+                                <div class="col-sm-8">
+                                    <div class="tab-content">
+                                        <div role="tabpanel" class="tab-pane active" id="td-{{ item.handle }}-diff-compare">
+                                            <div class="diff-cp-contianer"></div>
+                                        </div>
+                                        <div role="tabpanel" class="tab-pane" id="td-{{ item.handle }}-raw-compare">
+                                            <div class="row">
+                                                    <div class="col-sm-6"><textarea id="td-{{ item.handle }}-out-area" class="form-control" rows="20" readonly>{{ item.out }}</textarea></div>
+                                                    <div class="col-sm-6"><textarea id="td-{{ item.handle }}-outdata-area" class="form-control" rows="20" readonly>{{ item.outdata }}</textarea></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% else %}
+                        <div class="panel-body">
+                            <strong>测试数据未公开</strong>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="panel-body">
+                        <strong>内核信号（SIGNAL_NUM={{ item.signal }}）</strong><br/ >描述：{{ item.signal_desc }}
+                    </div>
+                {% endif %}
+                <div class="panel-footer">
+                    评测结果：{{ item.result | desc_status_flag | get_attr:"title"}}，
+                    {% if item.result == 0 or item.result == 1 or item.result == 4 or item.result == 5 or item.result == 6 %}
+                        运行时间：{{ item.timeused }}ms，内存使用：{{ item.memoryused }}KB
+                    {% elif item.result == 2 %}
+                        运行超时
+                    {% elif item.result == 3 %}
+                        内存超限
+                    {% endif %}
+                </div>
+            </div>
+
+        {% endfor %}
+        <div><span class="glyphicon glyphicon-info-sign"></span> 小提示：由于题目设置，开放查看的测试数据可能仅是所有数据的一部分哦。<br />
+        <span class="glyphicon glyphicon-info-sign"></span> 请注意：为了节约服务器存储资源，服务器将定期清理程序运行数据，但不会删除最近30天内的运行数据。<br />
+        <span class="glyphicon glyphicon-warning-sign"></span> 请注意：判题机在评测过程中遇到任何错误，将直接返回评测结果，不会再继续进行尝试哦。</div>
+    {% endif %}
+    <br><br>
+    {% if user_session.user_id != 'guest' %}
+    <h3>提交内容</h3>
+    <hr>
+    <textarea id="upload_code">{{ upload_code }}</textarea>
+    {% endif %}
+</div>
+{% endblock %}
+{% block page_script %}
+    <script src="/static/codemirror/lib/codemirror.js"></script>
+    <script src="/static/codemirror/mode/clike/clike.js"></script>
+    <script src="/static/codemirror/mode/javascript/javascript.js"></script>
+    <script src="/static/jsdifflib/difflib.js"></script>
+    <script src="/static/jsdifflib/diffview.js"></script>
+    <script type="text/javascript">
+    $(function () {
+        var editorShowedList = {};
+        var editorMode = {
+            "gcc": "text/x-csrc",
+            "gcc-cpp": "text/x-c++src",
+            "java": "text/x-java"
+        };
+        CodeMirror.fromTextArea(document.getElementById("upload_code"), {
+            lineNumbers: true,
+            mode: editorMode['{{ status.lang }}'],
+            readOnly: true,
+            showCursorWhenSelecting: false
+        });
+        $(".testdata-in-area").each(function (key, val) {
+            CodeMirror.fromTextArea(val, {
+                lineNumbers: true,
+                readOnly: true
+            });
+        });
+        $(".btn-td-out-raw-compare").on('shown.bs.tab', function () {
+            var handle = $(this).attr('data-handle');
+            if(editorShowedList[handle] != true){
+                CodeMirror.fromTextArea(document.getElementById("td-"+handle+"-out-area"), {
+                    lineNumbers: true,
+                    readOnly: true
+                });
+                CodeMirror.fromTextArea(document.getElementById("td-"+handle+"-outdata-area"), {
+                    lineNumbers: true,
+                    readOnly: true
+                });
+                editorShowedList[handle] = true;
+            }
+        });
+        $(".btn-td-out-diff-compare").each(function (key, val) {
+            var handle = $(val).attr('data-handle');
+            var base = difflib.stringAsLines($("#td-"+handle+"-out-area").val());
+            var newtxt = difflib.stringAsLines($("#td-"+handle+"-outdata-area").val());
+            var sm = new difflib.SequenceMatcher(base, newtxt);
+            $("#td-"+handle+"-diff-compare > .diff-cp-contianer").append(diffview.buildView({
+                baseTextLines: base,
+                newTextLines: newtxt,
+                opcodes: sm.get_opcodes(),
+                // set the display titles for each resource
+                baseTextName: "参考答案",
+                newTextName: "程序输出",
+                contextSize: 2,
+                viewType: 0
+            }));
+        });
+    })
+    </script>
+{% endblock %}

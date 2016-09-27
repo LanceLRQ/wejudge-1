@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% if contest != None %}
+{% load cproblem_index %}
+{% endif %}
+{% block page_title %}{% if contest != None %}{{ cproblem.index | cproblem_index }}{% else %}{{ problem.id }}{% endif %}. {{ problem.title }} - {% endblock %}
+{% block page_head %}
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+{% endblock %}
+{% block page_body %}
+<div class="page_container">
+    {% include "problem/problem/body.html" %}
+</div>
+{% endblock %}
+{% block page_script %}
+{% include "problem/problem/body_script.html" %}
+{% endblock %}

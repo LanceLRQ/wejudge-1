@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block page_title %}帮助中心 F.A.Q - {% endblock %}
+{% block page_head %}
+    <script type="text/javascript" src="/static/guide/students/jquery.scrollTo.min.js"></script>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>帮助中心</h1>
+</div>
+<div class="page_container">
+    {% include 'helper/nav.html' %}
+    <iframe frameborder="0" src="{% url 'helper_guide_student_viewer' 0 %}" width="1260" height="640"></iframe><br />
+</div>
+<script type="text/javascript">
+$(function () {
+   setTimeout(function () {
+       $('body').scrollTo(100, 1000);
+   }, 1000);
+});
+</script>
+{% endblock %}

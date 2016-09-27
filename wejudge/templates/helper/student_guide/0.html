@@ -1,0 +1,17 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_body %}
+    <div id="intro" style="position: absolute; width: 500px; margin-left: -250px; left: 50%; margin-top: 100px;" >
+        <h1 style="color: whitesmoke;" >Hello OJ</h1><br />
+        <h4 style="color: whitesmoke;">
+            &nbsp;WeJudge，取名自“Work for education Online Judge"，下面简称OJ，是一个用于C、C++、Java语言程序设计、数据结构等课程实验教学的在线评测辅助教学系统，是你们的师兄七宝宝(@lancelrq)为期一年开发的。<br>
+            <br>
+            下面，就让我们进入OJ的世界吧<br>
+        </h4><br />
+        <a class="btn btn-success btn-lg" href="{% url 'helper_guide_student_viewer' 1 %}">开始新手向导</a>
+        <br /><br />
+        <span style="color: white; font-size:14px;">鸣谢：15软件工程的<strong>黄颖妍</strong>同学提供本向导的相关代码</span>
+    </div>
+    <div>
+        <img src="/static/bgimgs/1.jpg" width="1260" height="800">
+    </div>
+{% endblock %}

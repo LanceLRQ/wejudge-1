@@ -1,0 +1,63 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% load ranklist_firstac_sign %}
+{% block asgn_page_title %}排行榜{% endblock %}
+{% block asgn_page_body %}
+<div id="reload_process" style="position: absolute; height: 4px; width:0%; background:#f00;"></div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>排名</th>
+                <th>姓名</th>
+                <th>解决数</th>
+                <th>总计时</th>
+                {% for id in rank_data.problem_list %}
+                <th><a href="{% url 'asgn_show_asgn_problem' asgn.id id %}">#{{ id }}</a></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for rank in rank_data.rank %}
+            {% if rank.1 > 0 %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><a href="{% url 'account_space' rank.0 %}" target="_blank">{{ rank.3 }} ({{ rank.0 }})</a></td>
+                <td>{{ rank.1 }}</td>
+                <td>{{ rank.2 | full_time:"time" }}</td>
+                {% for id in rank_data.problem_list  %}
+                    {% if id in rank.4 %}
+                    <td class="{{ rank.4 | get_attr:id |ranklist_firstac_sign:rank_data.first_ac_list }}">{{ rank.4 | get_attr:id | get_attr:"first_ac" | full_time:"time" }} ({{ rank.4 | get_attr:id | get_attr:"kda"}})</td>
+                    {% else %}
+                    <td>&nbsp;</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<span class="glyphicon glyphicon-info-sign"></span>&nbsp;小提示：为了减轻服务器压力，排行榜的刷新时间为30秒哟！<br />
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;统计说明：新版系统默认统计时间为，以题目第一次AC时间减去第一次进入作业的时间得到间隔时间，错题罚时为20分钟，仅计算第一次AC前的错题记录。<br />
+<span class="glyphicon glyphicon-info-sign"></span>&nbsp;排行榜颜色说明：<span class="label label-info">最快完成</span>、
+<span class="label label-success">已完成</span>、<span class="label label-danger">未完成，有错误</span><br />
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript">
+    $(function () {
+        var i = 0;
+        var max = 30;
+        var $bar = $("#reload_process");
+        setInterval(function () {
+            $bar.animate({ "width": (((i+1) / max) * 100) + "%"}, 600);
+            i++;
+            if (i >= max){
+                window.location.reload();
+            }
+        }, 1000);
+    });
+    </script>
+{% endblock %}

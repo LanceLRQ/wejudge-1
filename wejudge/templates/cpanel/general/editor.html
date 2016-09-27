@@ -1,0 +1,116 @@
+{% extends "cpanel/base.html" %}
+{% load role_named %}
+{% block cpanel_page_title %}网站配置管理{% endblock %}
+{% block cpanel_page_body %}
+    <form action="{% url 'cpanel_save_web_config' %}" method="post" id="general_editor_form">
+        <div class="input-group">
+            <div class="input-group-addon">网站标题*</div>
+            <input name="web_title" class="form-control" type="text" value="{{ web_config.web_title }}">
+        </div>
+        <br />
+        <div class="input-group">
+            <div class="input-group-addon">网站关键字</div>
+            <input name="web_keyword" class="form-control" type="text" value="{{ web_config.web_keyword }}">
+        </div>
+        <br />
+        <div class="input-group">
+            <div class="input-group-addon">网站简介</div>
+            <input name="web_desc" class="form-control" type="text" value="{{ web_config.web_desc }}">
+        </div>
+        <br />
+        <div class="input-group">
+            <div class="input-group-addon">网站版本</div>
+            <input name="web_version" class="form-control" type="text" value="{{ web_config.web_version }}">
+        </div>
+        <br />
+        <div class="input-group">
+            <div class="input-group-addon">网站公告</div>
+            <textarea name="web_notice"  class="form-control" rows="5">{{ web_config.web_notice }}</textarea>
+        </div><br />
+        <div class="row" align="center">
+            <div class="col-sm-3">
+                <div class="panel panel-default h4">
+                    <label class="">
+                        <input type="checkbox" value="1" name="web_stop_judging" {% if web_config.web_stop_judging %}checked{% endif %}>
+                        <br /><br />暂停全站评测
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="panel panel-default h4">
+                    <label>
+                        <input type="checkbox" value="1" name="web_login_limit" {% if web_config.web_login_limit %}checked{% endif %}>
+                        <br /><br />登录限制
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="panel panel-default h4">
+                    <label>
+                        <input type="checkbox" value="1" name="web_register" {% if web_config.web_register %}checked{% endif %}>
+                        <br /><br />开放注册
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="panel panel-default h4">
+                    <label>
+                        <input type="checkbox" value="1" name="web_pwd_equal_username" {% if web_config.web_pwd_equal_username %}checked{% endif %}>
+                        <br /><br /><small>登录时允许用户名和密码相同</small>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="input-group-addon">登录白名单<br />（优先级较低）</div>
+            <textarea name="web_login_white_list"  class="form-control" rows="5" placeholder="正则表达式，多组请用空行隔开">{{ web_config.web_login_white_list }}</textarea>
+        </div><br />
+        <div class="input-group">
+            <div class="input-group-addon">登录黑名单<br />（优先级较高）</div>
+            <textarea name="web_login_black_list"  class="form-control" rows="5" placeholder="正则表达式，多组请用空行隔开">{{ web_config.web_login_black_list }}</textarea>
+        </div>
+
+        <hr />
+        <div class="dropdown">
+            <button class="btn btn-primary btn-block dropdown-toggle"  style="border: 0px; border-radius: 0px;" type="button" data-toggle="dropdown">
+                点击切换系统默认学期 (<span id="view_dw_title">{{ web_config.year }} - {{ web_config.year | add:1 }}学年，第{{ web_config.term }}学期</span>)
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                {% for item in year_terms %}
+                <li role="presentation">
+                    <a role="menuitem" href="javascript:void(0)" onclick="chooseYearTerm({{ item.year }}, {{ item.term }})">
+                        {{ item.year }} - {{ item.year | add:1 }}学年，第{{ item.term }}学期
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <input type="hidden" name="year" id="ipt_year" value="{{ web_config.year }}">
+        <input type="hidden" name="term" id="ipt_term" value="{{ web_config.term }}">
+        <hr>
+        <div align="center"><button class="btn btn-success">保存</button></div>
+    </form>
+    <script type="text/javascript">
+    $(function () {
+        $("#general_editor_form").submit(function(){
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({body: "设置保存成功", color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+    var chooseYearTerm = function (year, term) {
+        $("#view_dw_title").text(year + " - "+(year+1)+"学年，第"+term+"学期");
+        $("#ipt_year").val(year);
+        $("#ipt_term").val(term);
+    }
+    </script>
+{% endblock %}

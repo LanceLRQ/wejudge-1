@@ -1,0 +1,29 @@
+<form class="form" method="get" action="" id="status_filter-form">
+    <div class="input-group">
+        <div class="input-group-addon">问题ID</div>
+        <input name="problem_id" type="text" class="form-control" name="title" value="{{ problem_id }}" placeholder="问题ID"/>
+    </div><br>
+    <div class="input-group">
+        <div class="input-group-addon">提交者</div>
+        <input name="author_id" type="text" class="form-control" name="title" value="{{ author_id }}" placeholder=""/>
+        <div class="input-group-addon">
+            <select name="author_type" id="">
+                <option value="">学号/工号/ID</option>
+                <option value="[n]" {% if author_type == '[n]' %}selected{% endif %}>昵称</option>
+                <option value="[r]" {% if author_type == '[r]' %}selected{% endif %}>真实姓名</option>
+            </select>
+        </div>
+    </div><br>
+    <div class="input-group">
+        <div class="input-group-addon">评测状态</div>
+        <select class="form-control" name="flag">
+            <option value="-3">全部</option>
+            {% for f in flags %}
+                {% if f.0 != -3 %}
+                <option value="{{ f.0 }}" {% if f.0 == flag %}selected{% endif %}>{{ f.1.title }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+    <input type="submit" value="" style="display: none">
+</form>

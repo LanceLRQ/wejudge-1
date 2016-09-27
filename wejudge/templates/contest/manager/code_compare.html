@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>代码查重对比</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ web_config.web_desc }}" />
+    <meta name="keywords" content="{{ web_config.web_keyword }}" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/app/master.css"/>
+    <script type="text/javascript" src="/static/library/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+    <script src="/static/codemirror/lib/codemirror.js"></script>
+    <script src="/static/codemirror/mode/clike/clike.js"></script>
+    <script src="/static/codemirror/mode/javascript/javascript.js"></script>
+    <style type="text/css">
+        .CodeMirror{
+            height: 800px;
+        }
+    </style>
+    <script>
+        $(function () {
+            var editorMode = {
+                "gcc": "text/x-csrc",
+                "gcc-cpp": "text/x-c++src",
+                "java": "text/x-java"
+            };
+           CodeMirror.fromTextArea(document.getElementById("code1"), {
+                lineNumbers: true,
+                mode: editorMode['{{ code_analysis.status1.lang }}'],
+                readOnly: true,
+                showCursorWhenSelecting: false
+            });
+            CodeMirror.fromTextArea(document.getElementById("code2"), {
+                lineNumbers: true,
+                mode: editorMode['{{ code_analysis.status2.lang }}'],
+                readOnly: true,
+                showCursorWhenSelecting: false
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="page_container">
+        <div class="row">
+        <div class="col-sm-6">
+            评测ID：{{ code_analysis.status1.id }}，参赛者：{{ code_analysis.status1.author.id }}({{ code_analysis.status1.author.nickname }})
+            <textarea id="code1">{{ code1 }}</textarea>
+        </div>
+        <div class="col-sm-6">
+            评测ID：{{ code_analysis.status2.id }}，参赛者：{{ code_analysis.status2.author.id }}({{ code_analysis.status2.author.nickname }})
+            <textarea id="code2">{{ code2 }}</textarea>
+        </div>
+    </div>
+    </div>
+</body>
+</html>

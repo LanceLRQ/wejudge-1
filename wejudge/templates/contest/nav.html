@@ -1,0 +1,16 @@
+<ul class="nav nav-pills">
+    <li class="disabled"><a href="#">欢迎您，{% if user_session.is_logined %}{{ user_session.user_nickname }}{% else %}游客{% endif %}！{% if is_referee %}{% if contest.author.id == user_session.user_id %}(比赛发起人){% else %}(裁判身份){% endif %}{% endif %}</a></li>
+    <li role="presentation" {% if type == "index" %}class="active"{% endif %}><a href="{% url 'contest_body' contest.id %}">比赛介绍</a></li>
+    <li role="presentation" {% if type == "problem_list" %}class="active"{% endif %}><a href="{% url 'contest_problems_list' contest.id %}">问题列表</a></li>
+    <li role="presentation" {% if type == "status" %}class="active"{% endif %}><a href="{% url 'contest_status' contest.id %}">评测状态</a></li>
+    <li role="presentation" {% if type == "rank_list" %}class="active"{% endif %}><a href="{% url 'contest_rank_list' contest.id %}">排行榜</a></li>
+    <li role="presentation" {% if type == "faq" %}class="active"{% endif %}><a href="{% url 'contest_faq' contest.id  %}">在线问答</a></li>
+    {% if is_referee and user_session.user_id == contest.author.id %}
+    <li role="presentation" {% if type == "setting" %}class="active"{% endif %}><a href="{% url 'contest_mgr_contest_setting' contest.id %}">比赛管理</a></li>
+    <li role="presentation" {% if type == "code_analyzer" %}class="active"{% endif %}><a href="{% url 'contest_mgr_code_analyzer' contest.id %}">代码查重</a></li>
+    {% if user_session.user_id == 'acm' %}
+    <li role="presentation" {% if type == "user_mgr" %}class="active"{% endif %}><a href="{% url 'contest_mgr_user' contest.id %}">专用用户管理</a></li>
+    {% endif %}
+    {% endif %}
+</ul>
+<hr>

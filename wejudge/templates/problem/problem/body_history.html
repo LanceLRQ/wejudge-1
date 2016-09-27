@@ -1,0 +1,12 @@
+{% if asgn == None %}
+<h4>全站评测情况图</h4>
+<div id="history-page-loading" align="center"><img src="/static/images/loader.gif"></div>
+<div id="history-page" class="row" style="display: none;">
+    <div class="col-sm-6"><div id="flag_list_container"></div></div>
+    <div class="col-sm-6"><div id="lang_list_container"></div></div>
+</div>
+<hr>
+{% endif %}
+<h4>我的评测记录</h4>
+<div id="history-status"></div>
+<a href="{% url 'problem_judge_status' %}?problem_id={{ problem.id }}" class="form-control btn btn-default">查看所有评测详情</a>

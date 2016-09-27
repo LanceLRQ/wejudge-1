@@ -1,0 +1,117 @@
+{% extends "asgn/base.html" %}
+{% load friendly_time %}
+{% block asgn_page_title%}作业批改{% endblock %}
+{% block asgn_page_body %}
+<form action="{% url 'asgn_mgr_save_asgn_checkup_fast' asgn.id %}" method="post" id="checkup_list_form">
+    <h3>统一作业批改</h3>
+    <span style="color: #999">请先在下方列表中选择需要批改的学生。执行批改后，原先的评分信息以及评语信息都将被覆盖。</span>
+    <hr>
+    <div class="input-group">
+        <div class="input-group-addon">统一评分</div>
+        <input class="form-control" id="teacher_score" name="teacher_score" value="{{ asgn.full_score }}"/>
+    </div>
+    <div class="row" align="center">
+        <div class="col-sm-6">
+            <div class="panel panel-default h4">
+                <label class="">
+                    <input type="checkbox" value="1" name="use_judge_score" checked>
+                    <br /><br />使用判题机分数
+                </label>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-default h4">
+                <label>
+                    <input type="checkbox" value="1" name="refresh_judge_score">
+                    <br /><br />重算计算判题机给分（可能需要一段时间）
+                </label>
+            </div>
+        </div>
+    </div>
+    <h4>统一评语</h4>
+    <textarea class="form-control" id="teacher_remark" name="teacher_remark"  rows="10"></textarea>
+    <br/>
+    <button type="submit" id="fast_checkup_btn" class="btn btn-primary">执行批改</button>
+    <h3>作业列表</h3>
+    <hr>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all" checked></th>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>最后提交时间</th>
+                <th>解决数/AC数/提交数</th>
+                <th>得分</th>
+                <th>评测记录</th>
+                <th>点击手动批改</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for report in report_list %}
+            <tr>
+                <td><input type="checkbox" name="sids" class="bm-checkbox" value="{{ report.student.id }}" checked/></td>
+                <td>{{ report.student.id }}</td>
+                <td><a href="{% url 'account_space' report.student.id %}" target="_blank">{{ report.student.realname }}</a></td>
+                {% if report.created == False %}
+                <td colspan="5" align="center">未提交</td>
+                {% else %}
+                <td>{% if report.modify_time > 0  %}{{ report.modify_time | friendly_time }}{% else %}无{% endif %}</td>
+                <td><span class="text-primary"><strong>{{ report.solved_counter }}</strong></span> / <span class="text-success">{{ report.ac_counter }}</span> / {{ report.submission_counter }} </td>
+                <td>{% if report.teacher_check %}{{ report.finally_score }}{% else %}{{ report.judge_score }}{% endif %}</td>
+                <td>
+                    <a href="{% url 'asgn_status_list' asgn.id %}?author_id={{ report.student.id }}" title="点击查看评测记录" class="label label-info" target="_blank">评测记录</a>
+
+                </td>
+                <td>
+                {% if report.teacher_check %}
+                    <a href="{% url 'asgn_show_report' asgn.id report.student.id %}" class="label label-success" target="_blank">已批阅</a>
+                {% else %}
+                    <a href="{% url 'asgn_show_report' asgn.id report.student.id %}" class="label label-warning" target="_blank">待批阅</a>
+                {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+        </tbody>
+        {% empty %}
+            <tr>
+                <td colspan="7" align="center">还没有人交过作业</td>
+            </tr>
+        {% endfor %}
+    </table>
+</form>
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+    <script type="text/javascript">
+    $(function () {
+        CKEDITOR.replace( 'teacher_remark', { height:'15em' } );
+        var $bm_form = $("#checkup_list_form");
+        $bm_form.find("#select-all").change(function () {
+            $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+        });
+        $bm_form.submit(function () {
+            for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if (flag) {
+                        $.AlertBox({
+                            body: "作业批改完毕",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.reload();
+                            }
+                        }).show();
+                    } else {
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+    </script>
+{% endblock %}

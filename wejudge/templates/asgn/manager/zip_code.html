@@ -1,0 +1,57 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% block asgn_page_title%}作业打包{% endblock %}
+{% block asgn_page_body %}
+<h3>作业打包</h3><hr />
+    <form action="{% url 'asgn_mgr_zip_the_codes' asgn.id %}" method="post" id="asgn_zip_form">
+        <div class="input-group">
+            <div class="input-group-addon">编码类型</div>
+            <select name="encoding" id="" class="form-control">
+                <option value="gbk" selected>GBK（Windows 用户请选择此编码）</option>
+                <option value="utf-8">UTF-8（Linux/Mac用户请选择此编码）</option>
+            </select>
+        </div><br />
+        <div class="input-group">
+            <div class="input-group-addon">目录分隔符</div>
+            <select name="separators" id="" class="form-control">
+                <option value="\" selected>\（Windows 分隔符）</option>
+                <option value="/">/（Linux/Mac 分隔符）</option>
+            </select>
+        </div>
+        <br>
+        <button class="btn btn-success" id="btn-start-zip">执行打包</button>
+        <br><br>
+        <span class="glyphicon glyphicon-info-sign"></span>&nbsp;打包操作将会导出本次作业所有AC过的题目的代码，文件格式为：<br />
+        [学号] _ [姓名] / [题目ID] _ [评测编号] . [文件格式]
+    </form>
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $("#asgn_zip_form").submit(function () {
+            $("#btn-start-zip").text('打包中，请稍等...').prop('disabled', true);
+            $.GRestP({
+               responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#btn-start-zip").text('执行打包').prop('disabled', false);
+                        $.AlertBox({
+                            body: "导出操作完成，请按确定按钮进行下载",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.href = "/resource/export_temp/asgn_zip/" + entity.data;
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+    </script>
+{% endblock %}

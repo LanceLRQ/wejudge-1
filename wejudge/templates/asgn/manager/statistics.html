@@ -1,0 +1,205 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% block asgn_page_title%}作业统计{% endblock %}
+{% block asgn_page_body %}
+<h3>作业统计</h3><hr />
+<div id="statistics-page-loading" align="center"><img src="/static/images/loader.gif"><br />载入中，可能需要一些时间</div>
+<div id="statistics-page" style="display: none;">
+    <div id="timeline"></div>
+    <hr>
+    <div id="asgn_errors"></div>
+    {% for p in problem_list %}
+    <hr>
+    <div id="problem_{{ p.id }}"></div>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block asgn_page_script %}
+<script type="text/javascript" src="/static/library/highcharts.js"></script>
+<script type="text/javascript" src="/static/library/highcharts-more.js"></script>
+<script type="text/javascript">
+$(function () {
+    var FLAG_NAMES = {
+        0: '提交数量',
+        1: '评测通过(AC)',
+        2: '格式错误(PE)',
+        3: '超过时间限制(TLE)',
+        4: '超过内存限制(MLE)',
+        5: '答案错误(WA)',
+        6: '运行时错误(RE)',
+        7: '输出内容超限(OLE)',
+        8: '编译失败(CE)',
+        9: '系统错误(SE)'
+    };
+    var PIE_NAME = [
+        '评测通过(AC)', '格式错误(PE)', '超过时间限制(TLE)',
+        '超过内存限制(MLE)', '答案错误(WA)', '运行时错误(RE)',
+        '输出内容超限(OLE)', '编译失败(CE)', '系统错误(SE)'
+    ];
+    $.GRestP({
+        responseType: 'json',
+        callback: function (flag, entity) {
+            // =======================================
+            if(flag){
+                $("#statistics-page-loading").hide();
+                $("#statistics-page").show();
+
+                var timeline = entity.data.timeline;
+                console.log(entity);
+                var tl_series = [];
+                $.each(timeline, function (k, v) {
+                    tl_series.push({
+                        type: 'area',
+                        name: FLAG_NAMES[k],
+                        pointInterval: entity.data.time_interval,
+                        pointStart: (entity.data.start_time + 8 * 3600) * 1000,
+                        data: v
+                    })
+                });
+                $('#timeline').highcharts({
+                    chart: {
+                        zoomType: 'x',
+                        spacingRight: 20
+                    },
+                    title: {
+                        text: '代码提交时间线'
+                    },
+                    subtitle: {
+                        text: '点击并拖动一段区域，可以放大这张图标'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        maxZoom: entity.data.time_zoom,
+                        title: {
+                            text: null
+                        }
+                    },
+                    yAxis: {
+                        min: 0
+                    },
+                    tooltip: {
+                        shared: true
+                    },
+                    colors: ['#7cb5ec', '#8BC34A', '#FFEB3B', '#FF9800', '#9C27B0',
+                                '#F44336', '#FF4081', '#795548', '#448AFF', '#727272']
+                    ,plotOptions: {
+                        area: {
+                            fillColor: {
+                                linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                                stops: [
+                                    [0, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.5).get('rgba')],
+                                    [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                                ]
+                            },
+                            lineWidth: 1,
+                            marker: {
+                                enabled: false
+                            },
+                            shadow: false,
+                            states: {
+                                hover: {
+                                    lineWidth: 1
+                                }
+                            },
+                            threshold: null
+                        }
+                    },
+
+                    series: tl_series
+                });
+                $('#asgn_errors').highcharts({
+                    chart: {
+                        polar: true,
+                        type: 'line',
+                        height: 600
+                    },
+
+                    title: {
+                        text: '评测错误分布图'
+                    },
+
+                    pane: {
+                        size: '80%'
+                    },
+
+                    xAxis: {
+                        categories: ['格式错误(PE)', '内容错误[WA/OLE]', '超时(TLE)', '超内存（MLE）',
+                                '运行时错误(RE)', '编译失败(CE)'],
+                        tickmarkPlacement: 'on',
+                        lineWidth: 0
+                    },
+
+                    yAxis: {
+                        gridLineInterpolation: 'polygon',
+                        lineWidth: 0,
+                        min: 0,
+                        tickInterval: 50
+                    },
+
+                    tooltip: {
+                        shared: true,
+                        pointFormat: '<span style="color:{series.color}">{series.name}: <b>${point.y:,.0f}</b><br/>'
+                    },
+
+                    legend: {
+                        enable:false
+                    },
+
+                    series: [{
+                        name: '数量',
+                        data: entity.data.errors,
+                        pointPlacement: 'on'
+                    }]
+
+                });
+                $.each(entity.data.problem_counter, function (key, val) {
+                    var series = [];
+                    for(var i = 0; i < 9; i++){
+                        series.push({
+                            name: PIE_NAME[i],
+                            y: val[i]
+                        });
+                    }
+                    var problem_title = key + "." + val[9];
+                    $(function () {
+                        $('#problem_' + key).highcharts({
+                            chart: {
+                                plotBackgroundColor: null,
+                                plotBorderWidth: null,
+                                plotShadow: false
+                            },
+                            title: {
+                                text: problem_title
+                            },
+                            tooltip: {
+                                pointFormat: '{point}'
+                            },
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    cursor: 'pointer',
+                                    dataLabels: {
+                                        enabled: true,
+                                        color: '#000000',
+                                        connectorColor: '#000000',
+                                        format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                                    }
+                                }
+                            },
+                            series: [{
+                                type: 'pie',
+                                data: series
+                            }]
+                        });
+                    });
+                });
+            // =======================================
+            }else{
+                $("#statistics-page-loading").html('抱歉，数据加载失败，请稍后重试');
+            }
+        }
+    }).call('{% url 'asgn_statistics_public' asgn.id %}');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+<div class="my-tab-container">
+    <form action="{% url 'education_mgr_enable_resource_repositories' course.id %}" method="post" id="form_resp">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    {% if user_session.user_role >= 2 %}
+                    <th width="80"><input type="checkbox" id="select-all"> 可见<span class="glyphicon glyphicon-eye-open"></span></th>
+                    {% endif %}
+                    <th>仓库名称</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for repository in repositories %}
+                    <tr>
+                        {% if user_session.user_role >= 2 %}
+                        <td><input type="checkbox" class="bm-checkbox" name="rhandle" value="{{ repository.handle }}" {%if repository.handle in course_used_repository%}checked{% endif %}></td>
+                        {% endif %}
+                        <td><a href="{% url "education_repository_index" repository.handle %}" target="_blank">{{ repository.title }}</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="{% if user_session.user_role >= 2 %}2{% else %}1{% endif %}" align="center">暂无可用仓库</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if user_session.user_role >= 2 %}
+        <button type="submit" class="btn btn-success">保存</button>
+        <a href="{% url "education_repository_index" %}" type="button" class="btn btn-primary" target="_blank">查看我的仓库中心</a>
+        {% endif %}
+        <br /><br />
+        <span class="glyphicon glyphicon-info-sign"></span>&nbsp;您可以通过仓库名称左侧的复选框来控制该仓库在当前课程中的可见性。
+    </form>
+</div>
+{% if user_session.user_role >= 2 %}
+<script type="text/javascript">
+    $(function () {
+       var $bm_form = $("#form_resp");
+        $bm_form.find("#select-all").change(function () {
+            $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+        });
+        $bm_form.submit(function () {
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if (flag) {
+                        $.AlertBox({
+                            title: "操作成功",
+                            body: entity.msg,
+                            color: "success",
+                            callback: function () {
+                                window.location.reload();
+                            }
+                        }).show();
+                    } else {
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "操作失败"
+                        }).show();
+                    }
+                }
+            }).submit_form("#form_resp");
+            return false;
+        });
+    });
+</script>
+{% endif %}

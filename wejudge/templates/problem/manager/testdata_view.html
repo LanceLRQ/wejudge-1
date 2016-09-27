@@ -1,0 +1,22 @@
+{% block page_body %}
+<form id="testdata-viewer-form" action="{% url 'problem_mgr_save_testdata_view' problem.id %}" method="post">
+
+    <input type="hidden" name="handle" value="{{ td.handle }}"/>
+
+    <h4>{{ td.handle }}. {{ td.name }}</h4><hr />
+    <div class="row">
+        <div class="col-sm-6">输入数据</div>
+        <div class="col-sm-6">输出数据</div>
+    </div><br />
+
+    <div class="row">
+        <div class="col-sm-6">
+            <textarea name="in" class="form-control" rows="20">{{ in |default:'' }}</textarea>
+        </div>
+        <div class="col-sm-6">
+             <textarea name="out" class="form-control" rows="20">{{ out |default:'' }}</textarea>
+        </div>
+    </div>
+
+</form>
+{% endblock %}

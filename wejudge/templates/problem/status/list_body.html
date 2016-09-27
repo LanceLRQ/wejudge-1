@@ -1,0 +1,48 @@
+{% load desc_status_flag %}
+{% load get_attr %}
+{% load judge_lang_called %}
+{% load friendly_time %}
+{% load is_null %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>评测ID</th>
+                <th>题目ID</th>
+                <th>提交者</th>
+                <th>通过情况</th>
+                <th>运行时长</th>
+                <th>内存占用</th>
+                <th>代码长度</th>
+                <th>代码语言</th>
+                <th>提交时间</th>
+            </tr>
+
+        </thead>
+
+        <tbody valign="middle">
+            {% for sitem in status_list %}
+            <tr>
+                <td>{{ sitem.id }} {{ time_permission }}</td>
+                <td><a href="{% if asgn != None %}{% url 'asgn_show_asgn_problem' asgn.id sitem.problem.id %}{% elif contest != None %}{% url 'contest_show_problem' contest.id sitem.problem.id %}{% else %}{% url 'problem_show' sitem.problem.id %}{% endif %}">{{ sitem.problem.id }}</a></td>
+                <td><a href="{% url 'account_space' sitem.author.id %}" target="_blank">{% if contest != None and time_permission > 0 %}{{ sitem.author.id }}{% else %}{{ sitem.author.nickname }}{% if asgn != None %} ({{ sitem.author.realname }}){% elif contest != None %}({{ sitem.author.id }}){% endif %}{% endif %}</a></td>
+                <td>
+                    <a href='{% url 'problem_judge_detail' sitem.id %}{% if asgn != None %}?asgn_id={{ asgn.id }}{% elif contest != None %}?contest_id={{ contest.id }}{% endif %}' class='label label-{{ sitem.flag | desc_status_flag | get_attr:"color" }}' title='{{ sitem.flag | desc_status_flag | get_attr:"en" }}'  target="_blank">{{ sitem.flag | desc_status_flag | get_attr:"title" }}</a>
+                    {% if contest != None and is_referee and sitem.problem.id in cproblem_manual_judge %}
+                        <a href="javascript:void(0)" data-id="{{ sitem.id }}" class="label label-default btn_contest_change_status">修改</a>
+                    {% endif %}
+                </td>
+                <td>{% if sitem.flag == 2 %}<span style="color: #f00;">---</span>{% else %}{{ sitem.exe_time }} MS{% endif %}</td>
+                <td>{% if sitem.flag == 3 %}<span style="color: #f00;">---</span>{% else %}{{ sitem.exe_mem }} KB{% endif %}</td>
+                <td>{{ sitem.code_len }}B</td>
+                <td>{{ sitem.lang | judge_lang_called }}</td>
+                <td>{{ sitem.timestamp | friendly_time}}</td>
+            </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="9" align="center">XD 暂时没有数据哦</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

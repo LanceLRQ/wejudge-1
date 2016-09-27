@@ -1,0 +1,238 @@
+{% load ratio %}
+{% load get_attr %}
+{% load show_diff_star %}
+{% load show_diff_title %}
+{% if not user_session.logined or user_session.preference_problem_detail_mode %}
+<form id="batch-manage-form" action="" method="post">
+    {% for problem in problems %}
+    <div class="problemlist_item">
+        <div class="header header-success">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                    <td width="70%">
+                        {% if asgn == None and user_session.user_role == 2 or user_session.user_role == 99 %}<input type="checkbox" class="batch-manage-checkbox" value="{{ problem.id }}" name="problem_ids"/>&nbsp;{% endif %}
+                        {% if asgn == None %}
+                        <a href="{% url "problem_show" problem.id %}" target="_blank">{{ problem.id }}. {{ problem.title }}</a>
+                            {% if not problem.is_show %}
+                            <span class="glyphicon glyphicon-eye-close"></span>
+                            {% endif %}
+                        {% else %}
+                        <a href="{% url 'asgn_show_asgn_problem' asgn.id problem.id %}">{{ problem.id }}. {{ problem.title }}</a>
+                        {% endif %}
+                        {% if asgn != None and problem.id in user_solution_is_finish %}
+                        <span class="glyphicon glyphicon-ok" title="已完成"></span>
+                        {% endif %}
+                        {% if problem.pause_judge %}<span class="glyphicon glyphicon-pause" title="评测暂停"></span>{% endif %}
+                    </td>
+                    <td>{{ problem.difficulty | show_diff_star | safe }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="body">
+            <table class="table">
+                <tr>
+                    <td width="70%">
+                        {% if asgn != None or contest != None %}
+                            {{ problem.description | striptags | slice:"200" | safe }}...<br/>
+                        {% else %}
+                            {% if problem.is_private %}
+                                暂时无法查看预览
+                            {% else %}
+                                {{ problem.description | striptags | slice:"200" | safe }}...<br/>
+                            {% endif %}
+                        {% endif %}
+                        {% if asgn != None %}
+                            {%  if problem.id in require_list %}<span class="label label-danger">必做题</span>{% else %}<span class="label label-info">选做题</span>{% endif %}&nbsp;
+                            <span class="label label-default"><strong>分值：</strong>{{ asgn_problems | get_attr:problem.id | get_attr:"score" }}</span>
+                        {% endif %}
+                    </td>
+                    <td align="center">
+                        {% if asgn == None %}
+                            正确率： {{ problem.ac | ratio:problem.total }}% ( {{ problem.ac }} / {{ problem.total }} )
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-success" style="width: {{ problem.ac | ratio:problem.total }}%;"></div>
+                            </div>
+                            {% if problem.id in problem_visited %}
+                            自己： {{ problem_visited | get_attr:problem.id | get_attr:"ratio" }} % ( {{ problem_visited | get_attr:problem.id | get_attr:"ac" }} / {{ problem_visited | get_attr:problem.id | get_attr:"total" }} )
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-success" style="width: {{ problem_visited | get_attr:problem.id | get_attr:"ratio" }}%;"></div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            正确率: {{ asgn_problem_counter | get_attr:problem.id | get_attr:"ac" }} / {{ asgn_problem_counter | get_attr:problem.id | get_attr:"total" }}
+                            <div class="progress" title="{{ asgn_problem_counter | get_attr:problem.id | get_attr:"ratio" }} %">
+                                <div class="progress-bar progress-bar-success" style="width: {{ asgn_problem_counter | get_attr:problem.id | get_attr:"ratio" }}%;"></div>
+                            </div>
+                            {% if problem.id in user_solution_counter %}
+                            我自己: {{ user_solution_counter | get_attr:problem.id | get_attr:"ac" }} / {{ user_solution_counter | get_attr:problem.id | get_attr:"total" }}
+                            <div class="progress" title="{{ user_solution_counter | get_attr:problem.id | get_attr:"ratio" }} % ">
+                                <div class="progress-bar progress-bar-success" style="width: {{ user_solution_counter | get_attr:problem.id | get_attr:"ratio"  }}%;"></div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td width="70%">
+                        {% if asgn == None %}
+                        <div class="btn-group">
+                            <a href="{% url "problem_show" problem.id %}#submit"  target="_blank" class="btn btn-primary">提交代码</a>&nbsp;
+                            <a href="{% url "problem_show" problem.id %}#history" target="_blank" class="btn btn-info">评测历史</a>&nbsp;
+                        </div>
+                        {% else %}
+                        <div class="btn-group">
+                            <a href="{% url 'asgn_show_asgn_problem' asgn.id problem.id %}#submit" target="_blank" class="btn btn-primary">提交代码</a>&nbsp;
+                            <a href="{% url 'asgn_show_asgn_problem' asgn.id problem.id %}#history" target="_blank" class="btn btn-info">评测历史</a>&nbsp;
+                        </div>
+                        {% endif %}
+                        {% if user_session.user_role == 2 or user_session.user_role == 99 %}
+                        <div class="btn-group dropdown">
+                            <button class="btn btn-warning dropdown-toggle" type="button" data-toggle="dropdown">
+                                <span class="glyphicon glyphicon-wrench"></span>&nbsp;管理题目&nbsp;<span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                {% if asgn != None %}
+                                    <li><a href="javascript:void(0)" class="asgn_problem_setting" data-id="{{ asgn_problems | get_attr:problem.id | get_attr:"id" }}">题目设置</a></li>
+                                    <li class="divider"></li>
+                                {% endif %}
+                                <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#info" target="_blank">编辑题目</a></li>
+                                <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#demo-code" target="_blank">示例代码</a></li>
+                                <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#test-data" target="_blank">测试数据</a></li>
+                                <li class="divider"></li>
+                                {% if asgn == None %}
+                                <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#delete" target="_blank">删除题目</a></li>
+                                {% else %}
+                                <li><a href="javascript:void(0)" class="remove_asgn_problem" data-id="{{ asgn_problems | get_attr:problem.id | get_attr:"id" }}">移除题目</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>发布者：<a href="{% url "account_space" problem.author.id %}" target="_blank">{{ problem.author.nickname }}</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    {% empty %}
+        <div class="alert alert-info">
+        哎呀，还没有题目呢！
+        </div>
+    {% endfor %}
+{% else %}
+    {# Classical Problem List #}
+    <form id="batch-manage-form" action="" method="post">
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>{% if asgn == None and user_session.user_role >= 2 %}<input type="checkbox" id="select-all">&nbsp;{% endif %}题号</th>
+                <th>题目名称</th>
+                {% if asgn != None %}
+                <th>要求</th>
+                <th>分值</th>
+                {% endif %}
+                <th>发布者</th>
+                <th>难度</th>
+                <th>全站正确率</th>
+                <th>我的正确率</th>
+                {% if user_session.user_role >= 2 %}
+                <th>操作</th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for problem in problems %}
+            <tr {% if asgn != None %}class="{% if problem.id in user_solution_counter %}success{% else %}{% if problem.id in require_list %}warning{% else %}default{% endif %}{% endif %}{% endif %}">
+                <td>
+                    {% if asgn == None and user_session.user_role >= 2 %}<input type="checkbox" class="batch-manage-checkbox" value="{{ problem.id }}" name="problem_ids"/>&nbsp;{% endif %}
+                    {{ problem.id }}
+                </td>
+                <td>
+                    {% if asgn == None %}
+                        <a href="{% url "problem_show" problem.id %}" target="_blank">{{ problem.title }}</a>
+                        {% if not problem.is_show %}
+                        <span class="glyphicon glyphicon-eye-close"></span>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'asgn_show_asgn_problem' asgn.id problem.id %}">{{ problem.title }}</a>
+                    {% endif %}
+                    {% if problem.pause_judge %}<span class="glyphicon glyphicon-pause" title="评测暂停"></span>{% endif %}
+                </td>
+                {% if asgn != None %}
+                <td>{%  if problem.id in require_list %}必做题{% else %}选做题{% endif %}</td>
+                <td>{{ asgn_problems | get_attr:problem.id | get_attr:"score" }}</td>
+                {% endif %}
+                <td><a href="{% url "account_space" problem.author.id %}" target="_blank">{{ problem.author.nickname }}</a></td>
+                <td>{{ problem.difficulty | show_diff_title }}</td>
+                <td>
+                    {% if asgn == None %}
+                    {{ problem.ac | ratio:problem.total }}% ( {{ problem.ac }} / {{ problem.total }} )
+                    {% else %}
+                    {{ asgn_problem_counter | get_attr:problem.id | get_attr:"ac" }} / {{ asgn_problem_counter | get_attr:problem.id | get_attr:"total" }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if asgn == None %}
+                        {% if problem.id in problem_visited %}
+                        {{ problem_visited | get_attr:problem.id | get_attr:"ratio" }} % ( {{ problem_visited | get_attr:problem.id | get_attr:"ac" }} / {{ problem_visited | get_attr:problem.id | get_attr:"total" }} )
+                        {% else %}
+                            无
+                        {% endif %}
+                    {% else %}
+                        {% if problem.id in user_solution_counter %}
+                        {{ user_solution_counter | get_attr:problem.id | get_attr:"ac" }} / {{ user_solution_counter | get_attr:problem.id | get_attr:"total" }}
+                        {% else %}
+                            未完成
+                        {% endif %}
+                    {% endif %}
+                    {% if asgn != None and problem.id in user_solution_is_finish %}
+                    <span class="glyphicon glyphicon-ok" title="已完成"></span>
+                    {% endif %}
+                </td>
+                {% if user_session.user_role >= 2 %}
+                <td>
+                    <div class="btn-group dropdown">
+                        <a href="javascript:void(0)" class="label label-warning dropdown-toggle" data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-wrench"></span>&nbsp;管理题目&nbsp;<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            {% if asgn != None %}
+                                <li><a href="javascript:void(0)" class="asgn_problem_setting" data-id="{{ asgn_problems | get_attr:problem.id | get_attr:"id" }}">题目设置</a></li>
+                                <li class="divider"></li>
+                            {% endif %}
+                            <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#info" target="_blank">编辑题目</a></li>
+                            <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#demo-code" target="_blank">示例代码</a></li>
+                            <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#test-data" target="_blank">测试数据</a></li>
+                            <li class="divider"></li>
+                            {% if asgn == None %}
+                            <li><a href="{% url 'problem_mgr_modify_problem' problem.id %}#delete" target="_blank">删除题目</a></li>
+                            {% else %}
+                            <li><a href="javascript:void(0)" class="remove_asgn_problem" data-id="{{ asgn_problems | get_attr:problem.id | get_attr:"id" }}">移除题目</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+                <tr>
+                    {% if asgn != None %}
+                        {% if user_session.user_role >= 2 %}
+                            <td colspan="9">哎呀，还没有题目呢！</td>
+                        {% else %}
+                            <td colspan="8">哎呀，还没有题目呢！</td>
+                        {% endif %}
+                    {% else %}
+                        {% if user_session.user_role >= 2 %}
+                            <td colspan="7">哎呀，还没有题目呢！</td>
+                        {% else %}
+                            <td colspan="6">哎呀，还没有题目呢！</td>
+                        {% endif %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </form>
+{% endif %}
+</form>
+

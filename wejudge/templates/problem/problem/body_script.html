@@ -1,0 +1,244 @@
+<script type="text/javascript">
+    var get_status_timer = null;
+    $(function () {
+        $.ajaxSetup({ cache: true });
+        var editor = null;
+        var history_page_loaded = false;
+        var status_id = null;
+        var editorMode = {
+            "gcc": "text/x-csrc",
+            "gcc-cpp": "text/x-c++src",
+            "java": "text/x-java"
+        };
+        var status_flag_static = {
+            0: ["评测通过 (Accepted)", "恭喜，评测成功通过！", "ok"],
+            1: ["格式错误 (Presentation Error)", "请检查程序输出答案的格式", "alert"],
+            2: ["超过时间限制 (Time Limit Exceeded)", "请检查程序是否陷入死循环或者算法没有在限定的时间内完成", "remove"],
+            3: ["超过内存限制 (Memory Limit Exceeded)", "请检查程序是否消耗了大量的内存没有释放", "remove"],
+            4: ["答案错误 (Wrong Answer)", "请检查程序是否符合题目要求", "remove"],
+            5: ["运行时错误 (Runtime Error)", "请检查程序是否存在递归未退出、除数为0、数组越界等情况", "remove"],
+            6: ["输出内容超限 (Output Limit Exceeded)", "请检查输出内容是否过多", "remove"],
+            7: ["编译失败 (Compile Error)", "请先完善程序，或者是通过评测机报告检查是否存在引用本系统不支持的库", "remove"],
+            8: ["系统错误 (System Error)", "请与管理员联系", "remove"]
+        };
+        function change_status(flag, distance){
+            if(flag == -2 || flag == -1){
+                $("#judge_message_distance").text("正在等待评测结果...已等待"+distance+"秒");
+            }else if(flag >=0 && flag <= 8){
+                var desc = status_flag_static[flag];
+                $("#judge_message").hide();
+                $("#judge_result").show();
+                $("#judge_result_title").text(desc[0]);
+                $("#judge_result_content").text(desc[1]);
+                $("#judge_result_icon").removeClass().addClass("glyphicon glyphicon-" + desc[2]);
+                $("")
+            }else{
+                $("#judge_result_title").text("未知");
+                $("#judge_result_content").text("未知");
+                $("#judge_result_icon").removeClass().addClass("glyphicon glyphicon-remove");
+            }
+        }
+        function get_status(){
+            if(status_id == null){return false;}
+            $.GRestP({
+                method: "get",
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        change_status(entity.data.flag, entity.data.distance);
+                        if(entity.data.flag >= -2 && entity.data.flag < 0) get_status_timer = setTimeout(get_status, 1000);
+                    }else{
+                        get_status_timer = setTimeout(get_status, 1000);
+                    }
+                }
+            }).call("{% url "api_get_judge_status" 0 %}".replace("status/0", "status/" + status_id))
+        }
+        $(".well img").addClass('img-responsive').css("cursor","pointer").css("cursor","hand").click(function () {
+          window.open($(this).attr('src'));
+        });
+        //评测历史界面
+        $("#tab-btn-history").on('shown.bs.tab', function () {
+            window.location.hash="#history";
+            {% if asgn == None %}
+             if(!history_page_loaded){
+                jQuery.getScript('/static/library/highcharts.js', function (response,status) {
+                    if(status != 'success') {return;}
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            $("#history-page-loading").hide();
+                            $("#history-page").show();
+                            var $fc = $("#flag_list_container");
+                            var $lc = $("#lang_list_container");
+                            if(flag){
+                                $lc.highcharts({
+                                    credits:{enabled:false},
+                                    title: {text: '评测语言分布图'},
+                                    tooltip: {pointFormat: '{point.y}'},
+                                    series: [{
+                                        type: 'pie',
+                                        data: entity.data.lang_data
+                                    }]
+                                });
+                                $fc.highcharts({
+                                    credits:{enabled:false},
+                                    chart: {type: 'column'},
+                                    title: {text: '评测结果统计图'},
+                                    xAxis: {
+                                        categories: [
+                                            '评测通过(AC)', '格式错误(PE)', '超过时间限制(TLE)',
+                                            '超过内存限制(MLE)', '答案错误(WA)', '运行时错误(RE)',
+                                            '输出内容超限(OLE)', '编译失败(CE)', '系统错误(SE)'
+                                        ],
+                                        labels: {
+                                            rotation: -45,
+                                            align: 'right',
+                                            style: {
+                                                fontSize: '13px'
+                                            }
+                                        }
+                                    },
+                                    yAxis: {
+                                        min: 0,
+                                        title: {
+                                            text: '评测记录数量'
+                                        }
+                                    },
+                                    legend: {enabled: false},
+                                    plotOptions: {
+                                        series: {
+                                            cursor: 'pointer',
+                                            point: {
+                                                events: {
+                                                    click: function () {
+                                                        location.href = this.options.url;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    series: [{
+                                        data: entity.data.flag_data,
+                                        dataLabels: {
+                                            enabled: true,
+                                            rotation: -90,
+                                            color: '#FFFFFF',
+                                            align: 'right',
+                                            x: 4,
+                                            y: 10,
+                                            style: {
+                                                lineHeight: '14px',
+                                                fontSize: '14px',
+                                                fontFamily: 'Georgia',
+                                                textShadow: '0'
+                                            }
+                                        }
+                                    }]
+                                });
+                                history_page_loaded=true;
+                            }else{
+
+                                $fc.html("图表加载失败：" + entity.msg);
+                                $lc.html("图表加载失败：" + entity.msg);
+                            }
+                        }
+                    }).call('{% url 'problem_judge_history' problem.id %}');
+                });
+             }
+            {% else %}
+                //评测图标在作业界面暂时不可用
+            {% endif %}
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#history-status").html(entity);
+                    }
+                }
+            }).call('{% if asgn == None %}{% url 'problem_judge_status_in_problem' problem.id %}{% else %}{% url 'asgn_show_my_status_list' asgn.id problem.id %}{% endif %}');
+        });
+        //提交代码页面
+        $("#tab-btn-submit").on('shown.bs.tab', function () {
+            if(editor==null){
+                jQuery.getScript('/static/codemirror/lib/codemirror.js', function (response,status) {
+                    if(status != 'success') {return;}
+                    jQuery.getScript('/static/codemirror/mode/clike/clike.js', function (response,status) {
+                        if(status != 'success') {return;}
+                        jQuery.getScript('/static/codemirror/mode/javascript/javascript.js', function (response,status) {
+                            if(status != 'success') {return;}
+
+                            window.location.hash="#submit";
+
+                            $("#submit-page-loading").hide();
+                            $(".slc-lang").click(function () {
+                                var val = $(this).val();
+                                changeEditor(val);
+                                $("#code_lang").val(val);
+                                $(".slc-lang").removeClass("btn-primary");
+                                $(this).addClass("btn-primary");
+                            });
+                            function changeEditor(lang){
+                                if(editor != null){
+                                    editor.toTextArea();
+                                }
+                                editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+                                    indentUnit: 4,
+                                    indentWithTabs: true,
+                                    lineNumbers: true,
+                                    mode: editorMode[lang],
+                                    matchBrackets: true,
+                                    showCursorWhenSelecting: true
+                                });
+                                editor.setSize("100%", "400px");
+                            }
+                            $("#code-submit-form").submit(function () {
+                                editor.save();
+                                $("#btn_submit").prop('disable', false);
+                                $.GRestP({
+                                    responseType: 'json',
+                                    callback: function (flag, entity) {
+                                        $("#btn_submit").prop('disable', true);
+                                        if(flag){
+                                            $("#submit-page").hide();
+                                            $("#waiting_box").toggle();
+                                            $("#judge_message").show();
+                                            $("#judge_result").hide();
+                                            status_id = entity.data;
+                                            $("#judge_status_report").attr("href", "{% url 'problem_judge_detail' 0 %}".replace("status/0", "status/" + status_id))
+                                            get_status();
+                                        }else{
+                                            $.AlertBox({
+                                                body: entity.msg,
+                                                color: "danger",
+                                                title: "提交失败"
+                                            }).show();
+                                        }
+                                    }
+                                }).submit_form(this);
+                                return false;
+                            });
+
+                            $("#submit-page").show(0,
+                                    //编辑器初始设置
+                                    function () {
+                                        {% if user_session.preference_language in language_provider %}
+                                            $(".lang-{{  user_session.preference_language }}").click();
+                                        {% else %}
+                                            $(".lang-{{ language_provider.0 }}").click();
+                                        {% endif %}
+                                    }
+                            );
+
+                        });
+                    });
+                });
+            }
+        });
+        $("#tab-btn-home").on('shown.bs.tab', function () {
+            window.location.hash="#home";
+        });
+
+        var hash = window.location.hash.replace("#", "");
+        $("#tab-btn-" + hash).tab("show");
+
+    });
+</script>

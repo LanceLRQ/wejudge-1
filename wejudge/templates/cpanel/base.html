@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block page_title %}控制面板 - {% endblock %}
+{% block page_body %}
+<div class="page_container">
+    <h3>控制面板：{% block cpanel_page_title%}{% endblock %}</h3>
+    <hr>
+    <div class="row">
+        <div class="col-sm-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">功能导航</h3>
+                </div>
+                <div class="list-group">
+                    <a class="list-group-item {% if type == 'web_config' %}active{% endif %}" href="{% url 'cpanel_web_config' %}">网站配置管理</a>
+                    <a class="list-group-item {% if type == 'account_mgr' %}active{% endif %}" href="{% url 'cpanel_accountmgr_viewlist' %}">用户账户管理</a>
+                    <a class="list-group-item {% if type == 'account_import' %}active{% endif %}" href="{% url 'cpanel_accountmgr_import' %}">网站账号导入</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-9">
+            {% block cpanel_page_body %}{% endblock %}
+        </div>
+    </div>
+</div>
+<br />
+{% endblock %}
+{% block page_script %}
+    {% block cpanel_page_script %}{% endblock %}
+{% endblock %}

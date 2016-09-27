@@ -1,0 +1,31 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+    <div id="head">
+        <div id="head-backphoto">
+            <img src="/static/guide/students/img/workHead.png" width="100%" height="100%">
+        </div>
+    </div>
+</div>
+<div id="main">
+    <div id="mainPhoto"></div>
+    <div >
+        <img src="/static/guide/students/img/评测成功.png" width="100%" height="100%">
+    </div>
+    <div id="pointer" style="position: absolute;left: 600px;top:200px;display: none"><img src="/static/guide/students/img/箭头图案.png"></div>
+    <div id="intro"style="position:absolute;left:280px;top:200px; display: none">
+        <img src="/static/guide/students/img/便签副本.png">
+        <p id="word" style="top:100px;display: none" class="introduce">
+            如果提交后出现了这个界面<br>
+            恭喜你成功解决了该题目。<br>
+            但在oj中并不总是那么顺利<br>
+            具体的错误提示在FAQ中有<br>
+            提示哦
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 19 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:192px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

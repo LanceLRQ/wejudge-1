@@ -1,0 +1,34 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="head">
+    <div id="head-backphoto">
+        <img src="/static/guide/students/img/workHead.png" width="100%" height="100%">
+    </div>
+</div>
+<div id="main">
+    <div id="mainPhoto"></div>
+    <div >
+        <img src="/static/guide/students/img/workMain.png" width="100%" height="100%" style="-webkit-filter: blur(5px);filter:blur(5px);">
+    </div>
+    <div><img style="position: absolute;top: 158px;left: 345px;width:900px;height:120px;" src="/static/guide/students/img/作业列表.png"></div>
+    <div><img id="square" src="/static/guide/students/img/调课边框.png" style="position: absolute;top: 217px;left: 1163px;"></div>
+    <div id="intro"style="position:absolute;left:880px;top:200px; display: none">
+        <img src="/static/guide/students/img/便签副本.png">
+        <p id="word" style="top:100px;display: none" class="introduce">
+            点击此按钮你可以更改<br>
+            题目对你开放的时间<br />
+            <strong style="color: red">
+                但此时间并不更改<br >
+                TMS的上课时间。<br >
+                如果想要更改上课时间<br />
+                请自行去TMS申请<br>
+            </strong>
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 11 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:210px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

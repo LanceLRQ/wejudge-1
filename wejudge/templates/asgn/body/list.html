@@ -1,0 +1,94 @@
+{% extends "asgn/base.html" %}
+{% block asgn_page_title%}题目列表{% endblock %}
+{% block asgn_page_body %}
+    {% if asgn != None and access_control_require %}
+        <div class="alert alert-danger">
+            <strong>当前作业没有任何人可以访问，请先在左下管理功能处找到【访问权限管理】进行设置</strong>
+        </div>
+    {% endif %}
+    {% if permission.1 != -1 or user_session.user_role == 2  or user_session.user_role == 99 %}
+        {% if asgn != None and asgn.remark != None and asgn.remark != '' %}
+            <div class="alert alert-info">
+                <h4>温馨提示</h4>{{ asgn.remark }}
+            </div>
+        {% endif %}
+        {% include "problem/archive/list_body.html" %}
+    {% else %}
+        <div class="alert alert-info">作业还未开始啦</div>
+    {% endif %}
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $(".asgn_problem_setting").click(function () {
+            var id = $(this).attr("data-id");
+            $.ModalBox({
+                size: "small",
+                title: "题目设置",
+                mode: "url",
+                url: "{% url 'asgn_mgr_asgn_problem_setting_ajax' asgn.id 0 %}".replace("byid/0", "byid/" + id),
+                default_btn_title: '保存',
+                loaded: function () {
+                    $("#asgn_problem_setting_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if (flag) {
+                                    $.AlertBox({
+                                        body: "题目设置保存成功",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                } else {
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#asgn_problem_setting_form").submit();
+                }
+            }).show();
+        });
+        $(".remove_asgn_problem").click(function () {
+            var id = $(this).attr("data-id");
+            $.ConfirmBox({
+                "title": "操作确认",
+                "body": "确定要移除这个题目吗？移除题目后，您还可以再次添加此题目到本作业。",
+                "color":"danger",
+                callback: function (flag) {
+                    if (flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "移除题目成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'asgn_mgr_remove_asgn_problem' asgn.id 0 %}'.replace("byid/0", "byid/" + id));
+                    }
+                }
+            }).show();
+        });
+    });
+    </script>
+{% endblock %}

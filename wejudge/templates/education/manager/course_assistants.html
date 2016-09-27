@@ -1,0 +1,102 @@
+<div class="my-tab-container">
+    <form action="{% url 'education_mgr_add_course_assistants' course.id %}" method="post" id="add_assistants_form">
+        <div class="input-group">
+            <div class="input-group-addon">添加助教</div>
+            <textarea class="form-control" rows="3" name="new_studentids" placeholder="例如:15010300001,15010300002"></textarea>
+            <div class="input-group-addon">（学号，多个请用英文逗号分隔）</div>
+        </div><br />
+        <input type="submit" class="btn btn-success" value="添加"/>
+    </form>
+    <hr />
+    <br />
+    <form action="{% url 'education_mgr_change_course_assistants' course.id %}" method="post" id="assistants_form">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>学号</th>
+                    <th>姓名</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stu in assistants %}
+                    <tr>
+                        <td><input type="checkbox" class="bm-checkbox" name="action_ids" value="{{ stu.id }}"></td>
+                        <td>{{ stu.id }}</td>
+                        <td>{{ stu.realname}}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" align="center">暂无助教</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <input class="btn btn-primary" value="移除助教" type="submit">
+    </form>
+</div>
+<script type="text/javascript">
+$(function () {
+    var $bm_form = $("#assistants_form");
+    $bm_form.find("#select-all").change(function () {
+        $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+    });
+    $bm_form.submit(function () {
+        $.ConfirmBox({
+            "title": "操作确认",
+            "body": "确定要执行这个操作吗？",
+            "color": "danger",
+            callback: function (flag) {
+                if (flag) {
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if (flag) {
+                                $.AlertBox({
+                                    title: "操作成功",
+                                    body: entity.msg,
+                                    color: "success",
+                                    callback: function () {
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            } else {
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "操作失败"
+                                }).show();
+                            }
+                        }
+                    }).submit_form("#assistants_form");
+                }
+            }
+        }).show();
+        return false;
+    });
+    $("#add_assistants_form").submit(function() {
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if (flag) {
+                    $.AlertBox({
+                        title: "操作成功",
+                        body: entity.msg,
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                } else {
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "操作失败"
+                    }).show();
+                }
+            }
+        }).submit_form(this);
+        return false;
+    });
+});
+</script>

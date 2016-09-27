@@ -1,0 +1,5 @@
+<ul class="nav nav-tabs">
+  <li role="presentation" {% if helper_action == 'index' %}class="active"{% endif %}><a href="{% url 'helper_index' %}">常见问答 F.A.Q</a></li>
+  <li role="presentation" {% if helper_action == 'student_guide' %}class="active"{% endif %}><a href="{% url 'helper_guide_student' %}">学生使用演示</a></li>
+</ul>
+<br />

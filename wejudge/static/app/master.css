@@ -1,0 +1,111 @@
+body, html{
+    height: 100%;
+    font-family: "微软雅黑", "华文细黑", Arial, Georgia, sans-serif;
+}
+select.form-control {
+    margin-left: -4px;
+}
+#main_container{
+    min-height:100%;
+    height: auto !important;
+    height: 100%;
+}
+#footer{
+    padding: 20px;
+    color: #000;
+    text-align: center;
+    width: 100%;
+    position: relative;
+    margin-top: -60px;
+    height: 30px;
+    clear: both;
+}
+.header_container{
+    background-color: #eee;
+    padding:10px 5% 10px 5%;
+}
+.page_body{
+    min-height: 100%;
+    background: #fff;
+    background: rgba(255, 255, 255, 0.9);
+    padding-bottom: 60px;
+}
+.page_container{
+    height: auto;
+    width: 95%;
+    padding-top: 20px;
+    margin: 0 auto;
+}
+.bg_img{
+    position: fixed;
+    z-index: -999;
+    width:100%;
+    height: 100%;
+}
+.nav_placeholder{
+    height: 50px;
+}
+.problemlist_item{
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+.problemlist_item .table {
+    margin-bottom: 0;
+}
+.problemlist_item > .body td {
+    line-height: 30px;
+}
+.problemlist_item > .header{
+    line-height: 40px;
+    border-left: 5px solid #337ab7;
+    font-size: 1.4em;
+    min-height: 40px;
+    height: auto;
+    padding-left: 20px;
+}
+.problemlist_item > .header >a {
+    color: #000;
+}
+.problemlist_item > .header > a:hover{
+    color: #5bc0de;
+    text-decoration: none;
+}
+.problemlist_item > .header-success{
+    border-left: 5px solid #5cb85c;
+}
+.problemlist_item > .header-success > a:hover{
+    color: #5cb85c;
+    text-decoration: none;
+}
+.problemlist_item > .header-danger{
+    border-left: 5px solid #d9534f;
+}
+.problemlist_item > .header-danger > a:hover{
+    color: #d9534f;
+    text-decoration: none;
+}
+.my-tab-container{
+    background-color: #fff;
+    border:1px solid #ddd;
+    border-top: 0;
+    padding:20px;
+}
+
+.bs-callout {
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+.bs-callout-danger {
+    border-left-color: #ce4844;
+}
+.bs-callout-info {
+    border-left-color: #1b809e;
+}
+.bs-callout-warning {
+    border-left-color: #aa6708;
+}

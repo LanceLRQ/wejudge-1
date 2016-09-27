@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% load ranklist_firstac_sign %}
+{% block page_title %}排行榜 - {{ contest.title }} - {% endblock %}
+{% block page_head %}
+    <style type="text/css">
+    table > tbody > tr > td{
+        vertical-align: middle !important;
+    }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div id="reload_process" style="position: relative; height: 4px; width:0%; background:#f00;"></div>
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% if 1hr_stop_flag == 1 %}
+        <div class="alert alert-info">当前排行榜为比赛结束前一个小时的快照，最终排行依照ACM协会账号所见为准</div>
+    {% elif 1hr_stop_flag == 2 %}
+        <div class="alert alert-info">当前排行榜为比赛结束时的排行榜快照，最终排行依照ACM协会发布为准</div>
+    {% endif %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>姓名</th>
+                    <th>解决数</th>
+                    <th>总计时</th>
+                    {% for id in rank_data.problem_list %}
+                    <th><a href="{% url 'contest_show_problem' contest.id id %}">#{{ id }}</a></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody >
+                {% for rank in rank_data.rank %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        {{ rank.3 | safe }} ({{ rank.0 }})
+                        <br />
+                        {{ rank.4 }}
+                    </td>
+                    <td>{{ rank.1 }}</td>
+                    <td>{{ rank.2 | full_time:"time" }}</td>
+                    {% for id in rank_data.problem_list  %}
+                        {% if id in rank.5 %}
+                        <td class="{{ rank.5 | get_attr:id |ranklist_firstac_sign:rank_data.first_ac_list }}">{{ rank.5 | get_attr:id | get_attr:"first_ac" | full_time:"time" }} ({{ rank.5 | get_attr:id | get_attr:"kda"}})</td>
+                        {% else %}
+                        <td>&nbsp;</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;小提示：为了减轻服务器压力，排行榜的缓存刷新时间为10秒哟！<br />
+        <span class="glyphicon glyphicon-info-sign"></span>&nbsp;封榜规则：根据ACM比赛要求，比赛结束前1小时系统将会自动进行『封榜』，即排行榜不再刷新！最终排行榜将以裁判账号看到和公布的为准。<br />
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;排行榜颜色说明：<span class="label label-info">最快完成</span>、
+    <span class="label label-success">已完成</span>、<span class="label label-danger">未完成，有错误</span><br />
+</div>
+
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+        {% if is_referee and  1hr_stop_flag == 0 %}
+            $(function () {
+                var i = 0;
+                var max = 11;
+                var $bar = $("#reload_process");
+                setInterval(function () {
+                    $bar.animate({ "width": (((i+1) / max) * 100) + "%"}, 600);
+                    i++;
+                    if (i >= max){
+                        window.location.reload();
+                    }
+                }, 1000);
+            });
+        {% endif %}
+    </script>
+{% endblock %}

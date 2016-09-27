@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% block page_title %}教学资源仓库{% endblock %}
+{% block page_head %}
+{% include "education/resource_script.html" %}
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>教学资源仓库{% if repository != None %} <small>/ {{ repository.title }} - 创建者：{{ repository.author.realname }}老师</small>{% endif %}</h1>
+</div>
+<div class="page_container">
+    <div class="row">
+        <div class="col-sm-3">
+            {% if user_session.user_role >= 2 %}
+            <div class="panel panel-default">
+                <div class="panel-heading"><span class="panel-title">仓库列表</span></div>
+                <div class="list-group">
+                    {% for repo in repo_list %}
+                    <a class="list-group-item {% if repository.handle == repo.handle %}active{% endif %}" href="{% url "education_repository_index" repo.handle %}">{{ repo.title }}{% if user_session.user_role == 99 %} - {{ repo.author.realname }}{% endif %}</a>
+                    {% empty %}
+                    <a class="list-group-item">您还没有创建仓库</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading"><span class="panel-title">仓库操作</span></div>
+                <div class="list-group">
+                    {% if user_session.user_role == 2 %}
+                    <a class="list-group-item" id="btn-new-repo" href="javascript:void(0)">新建仓库</a>
+                    {% endif %}
+                    {% if repository != None %}
+                    <a class="list-group-item" id="btn-change-repo" data-title="{{ repository.title }}" data-handle="{{ repository.handle }}"  href="javascript:void(0)">修改仓库</a>
+                    <a class="list-group-item" id="btn-delete-repo" data-handle="{{ repository.handle }}"  href="javascript:void(0)">删除仓库</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="panel panel-default">
+                <div class="panel-heading"><span class="panel-title">教学仓库子系统</span></div>
+                <div class="panel-body">
+                    同学，你好！<br /><br />你可以在这里浏览并且下载老师发布的教学资源！<br /><br />点击文件名称即可下载文件，点击文件目录即可浏览目录内容。
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-sm-9">
+            {% if user_session.user_role >= 2 and repository != None %}
+                <form id="uploadForm" class="form-inline" method="post" enctype="multipart/form-data" action="">
+                    <div class="input-group">
+                        <div class="input-group-addon">上传文件</div>
+                        <input type="file" name="uploadFile" id="uploadFile" class="form-control"/>
+                        <input type="hidden" name="path" id="form-path" value="{{ path }}" />
+                        <input type="hidden" name="is_classic" value="1"/>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="uploadFileBtn">上传</button>
+                    <button type="button" class="btn btn-success btn-sm" id="btn-new-folder">新建文件夹</button>
+                </form>
+                <div class="progress" style="margin-top: 6px; display: none;" id="uploadProgressBar">
+                    <div id="uploadProgressBarBody" class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="width: 20%">
+                        20%
+                    </div>
+                </div>
+                <hr />
+            {% endif %}
+            {% if repository != None %}
+            <h4>当前位置：<span id="nowPath">{{ path }}</span></h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th width="30"></th>
+                            <th>名称</th>
+                            <th>属性</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if path != '' %}
+                        <tr>
+                            <td width="30"><span class="glyphicon glyphicon-folder-open text-success"></span></td>
+                            <td colspan="2"><a href="javascript:void(0)" onclick="jumpToParent();">&lt;上一级文件夹&gt;</a></td>
+                        </tr>
+                        {% endif %}
+                        {% for dir in content_list.dirs %}
+                        <tr>
+                            <td width="30"><span class="glyphicon glyphicon-folder-close text-info"></span></td>
+                            <td colspan="2">
+                                <a href="javascript:void(0)" onclick="jumpToPath('/{{ dir }}');">{{ dir }}</a>
+                                {% if user_session.user_role >= 2 %}&nbsp;
+                                <a href = 'javascript:void(0)' onclick="del('{{ path }}/{{ dir }}');">[删除]</a>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                        {% for file in content_list.files %}
+                        <tr>
+                            <td width="30"><span class="glyphicon glyphicon-file text-primary"></span></td>
+                            <td width="50%"><a href="/resource/repositories/{{ repository.handle }}{{ path }}/{{ file.file_name }}" target="_blank">{{ file.file_name }}</a>
+                                {% if user_session.user_role >= 2 %}&nbsp;
+                                <a href = 'javascript:void(0)' onclick="del('{{ path }}/{{ file.file_name }}');">[删除]</a>{% endif %}
+                            </td>
+                            <td><strong>大小：</strong>{{ file.size }}字节&nbsp;&nbsp;<strong>修改时间：</strong>{{ file.modify_time |full_time }}</td>
+                        </tr>
+                        {% empty %}
+                            <tr>
+                            <td colspan="4">这个目录没有文件</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+            {% else %}
+                欢迎使用教学仓库子系统。<br /><br />请在左侧选择并浏览资源仓库
+            {% endif %}
+        </div>
+    </div>
+</div>
+<br />
+{% endblock %}

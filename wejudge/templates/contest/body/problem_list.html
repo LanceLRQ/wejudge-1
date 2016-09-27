@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% load ratio %}
+{% load get_attr %}
+{% load show_diff_title %}
+{% load full_time %}
+{% block page_title%}题目列表 - {{ contest.title }} - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% if is_referee %}
+    <ul class="pagination">
+        <li id="btn-add-problems"><a href="javascript:void(0)"><span class="glyphicon glyphicon-plus"></span>&nbsp;添加题目</a></li>
+        <li id="btn-bm-remove" class="disabled"><a href="javascript:void(0)"><span class="glyphicon glyphicon-minus"></span>&nbsp;移除题目</a></li>
+    </ul>
+    {% endif %}
+    {% if not is_referee and time_permission != 0 %}
+        {% if time_permission == -1 %}
+            <div class="alert alert-warning">比赛还没有开始</div>
+        {% elif time_permission == 1  %}
+            <div class="alert alert-danger">比赛已经结束</div>
+        {% endif %}
+    {% else %}
+    <form id="batch-manage-form" action="" method="post">
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <td>{% if is_referee %}<input type="checkbox" id="select-all">&nbsp;{% endif %}题号</td>
+                <td>题目名称</td>
+                <td>通过/提交</td>
+                <td>我的通过/提交</td>
+                {% if is_referee %}
+                <td width="140">操作</td>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for cproblem in cproblem_list %}
+            <tr>
+                <td width="80">
+                    {% if is_referee %}<input type="checkbox" class="batch-manage-checkbox" value="{{ cproblem.problem.id }}" name="problem_ids"/>&nbsp;{% endif %}
+                    {{ cproblem.index }}
+                </td>
+                <td>
+                    <a href="{% url 'contest_show_problem' contest.id cproblem.problem.id %}">{{ cproblem.problem.title }}</a>
+                    {% if cproblem.problem.pause_judge %}<span class="glyphicon glyphicon-pause" title="评测暂停"></span>{% endif %}
+                </td>
+                <td width="140">{{ contest_problem_counter | get_attr:cproblem.problem.id | get_attr:"ac" }} / {{ contest_problem_counter | get_attr:cproblem.problem.id | get_attr:"total" }}
+                </td>
+                <td width="140">
+                    {% if cproblem.problem.id in user_solution_counter %}
+                        {{ user_solution_counter | get_attr:cproblem.problem.id | get_attr:"ac" }} / {{ user_solution_counter | get_attr:cproblem.problem.id | get_attr:"total" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                </td>
+                {% if is_referee %}
+                <td width="140">
+                    <div class="btn-group dropdown">
+                        <a href="javascript:void(0)" class="label label-warning dropdown-toggle" data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-wrench"></span>&nbsp;管理题目&nbsp;<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                            <li><a href="#" class="contest_problem_setting" data-id="{{ cproblem.problem.id }}">题目设置</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'problem_mgr_modify_problem' cproblem.problem.id %}#info" target="_blank">编辑题目</a></li>
+                            <li><a href="{% url 'problem_mgr_modify_problem' cproblem.problem.id %}#demo-code" target="_blank">示例代码</a></li>
+                            <li><a href="{% url 'problem_mgr_modify_problem' cproblem.problem.id %}#test-data" target="_blank">测试数据</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#" class="contest_problem_rejudge" data-id="{{ cproblem.problem.id }}">发起重判</a></li>
+
+                        </ul>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+                <tr>
+                    {% if is_referee %}
+                        <td colspan="5">哎呀，还没有题目呢！</td>
+                    {% else %}
+                        <td colspan="4">哎呀，还没有题目呢！</td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
+{% block page_script %}
+    {% if is_referee %}
+    <script type="text/javascript">
+
+        var $bm_form = $("#batch-manage-form");
+        $bm_form.find(".batch-manage-checkbox").change(function () {
+           if($bm_form.find(".batch-manage-checkbox:checked").length > 0){
+               $("#btn-bm-remove").removeClass("disabled");
+           }else{
+               $("#btn-bm-remove").addClass("disabled");
+           }
+        });
+        $bm_form.find("#select-all").change(function () {
+            $bm_form.find(".batch-manage-checkbox").prop("checked", $(this).prop("checked")).change();
+        });
+        $("#btn-add-problems").click(function () {
+            $.ModalBox({
+                title: '添加题目',
+                mode: 'html',
+                html: '<form id="form-add-problems" method="post" action="{% url 'contest_mgr_add_new_problems' contest.id %}"><strong>请写入要添加的题目编号，用英文逗号隔开。</strong><textarea class="form-control" name="problem_ids"></textarea></form>',
+                default_btn_title: '保存',
+                loaded: function () {
+                    $("#form-add-problems").submit(function () {
+                        $.GRestP({
+                           responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                       return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#form-add-problems").submit();
+                }
+            }).show();
+        });
+        $("#btn-bm-remove").click(function () {
+            if($(this).hasClass("disabled")) return false;
+            $.ConfirmBox({
+                title: '操作确认',
+                body: "确定要移除当前选中的题目吗？移除操作将会清除该题目的做题统计信息和在本次比赛中的设置信息，但是不会移除已经提交过的记录，也不会计入排行榜中",
+                color: 'warning',
+                callback: function (flag) {
+                    if(!flag) return;
+                    $.GRestP({
+                        responseType: "json",
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({body: entity.msg, color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                            }
+                        }
+                    }).submit_form("#batch-manage-form",'{% url 'contest_mgr_remove_problems' contest.id %}');
+                }
+            }).show();
+        });
+        $(".contest_problem_rejudge").click(function () {
+            var id = $(this).attr("data-id");
+            $.ConfirmBox({
+                "title": "操作确认",
+                "body": "确定要对当前题目在本次比赛中的所有评测记录进行重判操作吗？",
+                "color":"danger",
+                callback: function (flag) {
+                    if (flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "当前题目所有评测记录都已经进入重判队列！注意，重判需要一定的时间，并且优先级低于实时评测队列。",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'contest_mgr_start_problem_rejudge' contest.id 0 %}'.replace("problem/0", "problem/" + id));
+                    }
+                }
+            }).show();
+        });
+        $(".contest_problem_setting").click(function () {
+            var id = $(this).attr("data-id");
+            $.ModalBox({
+                size: "small",
+                title: "题目设置",
+                mode: "url",
+                url: "{% url 'contest_mgr_problem_setting' contest.id 0 %}".replace("problem/0", "problem/" + id),
+                default_btn_title: '保存',
+                loaded: function () {
+                    $("#contest_problem_setting_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if (flag) {
+                                    $.AlertBox({
+                                        body: "题目设置保存成功",
+                                        color: "success",
+                                        title: "操作成功",
+                                        callback: function () {
+                                            $.ModalBox({}).hide();
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                } else {
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#contest_problem_setting_form").submit();
+                }
+            }).show();
+        });
+    </script>
+    {% endif %}
+{% endblock %}

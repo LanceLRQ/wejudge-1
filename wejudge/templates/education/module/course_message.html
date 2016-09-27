@@ -1,0 +1,104 @@
+{% load full_time %}
+<div class="my-tab-container">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th  width="80">消息编号</th>
+                <th>消息标题</th>
+                <th width="200">发布时间</th>
+                <th width="200">截止时间</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for message in messages %}
+                <tr>
+                    <td>#{{ message.id }}</td>
+                    <td>
+                        <a href="javascript:void(0)" class="message-item" data-id="{{ message.id }}">{{ message.title }}</a>&nbsp;
+                        {% if user_session.user_role == 2 %}
+                            <a href="javascript:void(0)" class="message-modify" data-id="{{ message.id }}" >[编辑]</a>
+                            <a href="javascript:void(0)" class="message-delete" data-id="{{ message.id }}" >[删除]</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ message.time | full_time }}</td>
+                    <td>{{ message.deadline | full_time }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" align="center">暂无课程通知</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if user_session.user_role == 2 %}
+    <button id="btn-publish-message" class="btn btn-success">发布通知</button>
+    {% endif %}
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("a.message-item").click(function () {
+            var id = $(this).attr("data-id");
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#message").html(entity);
+                    }
+                }
+            }).call('{% url 'education_course_message_detail' course.id 0 %}'.replace("message/0", "message/"+id));
+        });
+        {% if user_session.user_role == 2 %}
+        $("#btn-publish-message").click(function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#message").html(entity);
+                    }
+                }
+            }).call('{% url 'education_mgr_new_course_message' course.id %}');
+        });
+        $("a.message-modify").click(function () {
+            var id = $(this).attr("data-id");
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#message").html(entity);
+                    }
+                }
+            }).call('{% url 'education_mgr_modify_course_message' course.id 0 %}'.replace("message/0", "message/"+id));
+        });
+        $("a.message-delete").click(function () {
+            var id = $(this).attr("data-id");
+            $.ConfirmBox({
+                "title": "操作确认",
+                "body": "确定要删除这条通知消息么？",
+                "color":"danger",
+                callback: function (flag) {
+                    if (flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "通知删除成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'education_mgr_delete_course_message' course.id 0 %}'.replace("message/0", "message/"+id));
+                    }
+                }
+            }).show();
+        });
+        {% endif %}
+    });
+</script>

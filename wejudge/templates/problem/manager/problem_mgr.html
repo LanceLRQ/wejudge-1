@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block page_title %}题目管理 - {{ problem.id }}.{{ problem.title }} - {% endblock %}
+{% block page_head %}
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+    <style type="text/css">
+        #cm-editor{
+            border:1px solid #ddd;
+            border-top: 0;
+        }
+        .my-tabpanel{
+            background-color: #fff;
+            border:1px solid #ddd;
+            border-top: 0;
+            padding: 20px;
+        }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>编辑题目：{{ problem.id }}.{{ problem.title }}</h1>
+</div>
+<div class="page_container">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li><a href="#info" id="tab-btn-info" role="tab" data-toggle="tab">编辑</a></li>
+        <li><a href="#demo-code" role="tab" id="tab-btn-demo-code" data-toggle="tab">示例代码</a></li>
+        <li><a href="#test-data" role="tab" id="tab-btn-test-data" data-toggle="tab">测试数据</a></li>
+        <li><a href="#delete"  role="tab" id="tab-btn-delete" data-toggle="tab">删除题目</a></li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane" id="info">
+            <div class="my-tab-container">
+            {% include "problem/manager/problem_editor.html" %}
+            </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="demo-code">
+            {% include "problem/manager/problem_demo_code.html" %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="test-data">
+            <div class="my-tab-container">
+            {% include "problem/manager/problem_test_data.html" %}
+            </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="delete">
+            <div class="my-tab-container">
+                <form id="form-delete-problem" action="{% url 'problem_mgr_delete_problem' problem.id %}" method="post">
+                    <div class="alert alert-danger">
+                        <h4><strong>警告：</strong>您应该很清楚您的操作即将带来的后果。</h4>
+                        <ol>
+                            <li>题目信息将会被永久删除，无法恢复。</li>
+                            <li>所有与该题目关联的做题信息、统计、评测数据等都将会被连带删除。</li>
+                            <li>题目ID不再存在，新增题目也将不能再使用当前的题目ID。</li>
+                            <li>测试数据、运行数据等存放于服务器文件系统的内容将不会被删除。</li>
+                            <li>当前操作仅能由管理员或题目发布者执行。</li>
+                        </ol>
+                        <label><input type="checkbox" name="confrim" value="1" onchange="if($(this).prop('checked')){$('#btn-delete-action').removeClass('disabled');}">&nbsp;我愿意承担此操作带来的风险</label>
+                        <hr />
+                        <button type="submit" id="btn-delete-action" class="btn btn-danger disabled">删除题目</button>
+                    </div>
+                </form>
+             </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block page_script %}
+{% include "problem/manager/problem_mgr_script.html" %}
+{% endblock %}

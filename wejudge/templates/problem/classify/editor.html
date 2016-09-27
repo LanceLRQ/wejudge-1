@@ -1,0 +1,8 @@
+<form action="{% if is_new %}{% url 'problem_save_new_classify' id %}{% else %}{% url 'problem_save_modify_classify' id %}{% endif %}" method="post" id="problem_classify_editor_form">
+    当前分类ID：{{ id }}{% if not is_new %}{% if editable %}，可编辑{% else %}，<strong>不可编辑</strong>{% endif %}{% else %}，<strong>将要建立子分类</strong>{% endif %}<br>
+    <div class="input-group">
+        <div class="input-group-addon">分类名称</div>
+        <input type="text" class="form-control" name="title" value="{% if not is_new %}{{ node.title | default:"" }}{% endif %}">
+    </div>
+    <input type="submit" value="" style="display: none;">
+</form>

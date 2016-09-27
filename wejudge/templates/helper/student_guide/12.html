@@ -1,0 +1,28 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+    <div id="head">
+        <div id="head-backphoto">
+            <img src="/static/guide/students/img/head.png" width="100%" height="100%">
+        </div>
+    </div>
+    <div id="main">
+        <div >
+            <img src="/static/guide/students/img/作业题目.png" width="100%" height="100%" id="mainPhoto">
+        </div>
+        <div><img src="/static/guide/students/img/作业信息.png" style="position: absolute;left: 30px;top:140px;" width="280px" height="220px"></div>
+        <div id="intro" style="position:absolute;left:250px;top:250px;display: none;" >
+            <img src="/static/guide/students/img/便签.png">
+            <p  class="introduce" >
+                这里显示本次作业的相关信息<br>
+                你需要用相关的语言来编写代<br>
+                码,而且要在规定的时间内完<br>
+                成作业哦
+            </p>
+            <a  href="{% url 'helper_guide_student_viewer' 13 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:150px;cursor: hand"></a>
+        </div>
+    </div>
+{% endblock %}

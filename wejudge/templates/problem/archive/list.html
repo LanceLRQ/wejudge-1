@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% block page_title %}题目库 - {% endblock %}
+{% block page_head %}
+    <link rel="stylesheet" href="/static/library/jstree/themes/default/style.min.css">
+    <script type="text/javascript" src="/static/library/jstree/jstree.min.js"></script>
+    <link rel="stylesheet" href="/static/app/BootSideMenu.css">
+    <script type="text/javascript" src="/static/library/BootSideMenu.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="left_silder" class="sidebar">
+    <div style="padding: 5%">
+        <h3>题目分类</h3>
+        <hr>
+        <div class="table-responsive">
+            <div id="problem_classify_list"></div>
+        </div><br/>
+        <div class="btn-group btn-group-justified">
+            <a href="{% url "problem_archive" %}?classify_id=-1" class="btn btn-default btn-sm">查看未分类</a>
+            <a href="{% url "problem_archive" %}?classify_id=0" class="btn btn-default btn-sm">查看所有</a>
+        </div>
+        {% if user_session.user_role >= 2 %}
+        <br />
+        <div class="btn-group btn-group-justified">
+            <a href="javascript:void(0)" id="clist-btn-new" class="btn btn-sm btn-success disabled"><span class="glyphicon glyphicon-plus"></span> 新增</a>
+            <a href="javascript:void(0)" id="clist-btn-modify" class="btn btn-sm btn-primary disabled"><span class="glyphicon glyphicon-pencil"></span> 修改</a>
+            <a href="javascript:void(0)" id="clist-btn-delete" class="btn btn-sm btn-danger disabled"><span class="glyphicon glyphicon-remove"></span> 删除</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+<div class="header_container">
+    <h1>题目库
+    {% if asgn_id != None and asgn_id != "" and user_session.user_role >= 2 %}
+        <small>/ 作业选题模式 - 目标作业：{{ asgn_choosing.name }}({{ asgn_id }}) - <a href="javascript:window.close();">[退出]</a></small>
+    {% endif %}
+    </h1>
+
+</div>
+<div class="page_container">
+    <!--toolbar-->
+    <div class="row">
+
+        <div class="col-sm-12">
+            {% if user_session.user_role >= 2 %}
+                {% if asgn_id == "" %}
+                <ul class="pagination">
+                    <li><a href="{% url 'problem_mgr_new_problem' %}" title="添加新题目"><span class="glyphicon glyphicon-plus"></span>添加题目</a></li>
+                    <li id="btn-bm-visiable" class="disabled"><a href="javascript:void(0)" title="批量设置可见"><span class="glyphicon glyphicon-eye-open">可见</span></a></li>
+                    <li id="btn-bm-invisiable" class="disabled"><a href="javascript:void(0)" title="批量设置不可见"><span class="glyphicon glyphicon-eye-close">不可见</span></a></li>
+                    <li id="btn-bm-moveto" class="disabled"><a href="javascript:void(0)"><span class="glyphicon glyphicon-scissors"></span>移动到分类</a></li>
+                </ul>
+                {% else %}
+                <ul class="pagination">
+                    <li class="active" id="btn-asgn-problem"><a href="javascript:void(0)"  style="cursor:pointer;" title="添加题目到作业"><span class="glyphicon glyphicon-plus"></span>添加题目到作业</a>
+                </li>
+                </ul>
+                {% endif %}
+            {% endif %}
+            <ul class="pagination">
+                <li><a href="javascript:void(0)" id="btn-archive-filter"><span class="glyphicon glyphicon-filter"></span>&nbsp;筛选</a></li>
+                {% if desc == '1' %}
+                    <li><a href="javascript:void(0)" id="btn-desc-order"><span class="glyphicon glyphicon-sort-by-alphabet"></span>&nbsp;顺序排列</a></li>
+                {% else %}
+                    <li><a href="javascript:void(0)" id="btn-desc-order"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span>&nbsp;倒序排列</a></li>
+                {% endif %}
+                {% if user_session.user_role >= 2 %}
+                    <li><a href="{% url "problem_archive" %}?classify_id={{ classify_id }}&author_id={{ user_session.user_id }}&asgn_id={{ asgn_id }}"><span class="glyphicon glyphicon-star"></span> 我发布的</a></li>
+                {% endif %}
+                <li><a href="javascript:WeJudge.problem_jumper('{% url 'problem_show' 0 %}')" title="转到题目"><span class="glyphicon glyphicon-console"></span>&nbsp;转到题目</a></li>
+            </ul>
+            <ul class="pagination">
+                <li {% if user_session.logined and not user_session.preference_problem_detail_mode %}class="active"{% endif %}><a href="javascript:void(0)" id="btn_preference_pcl" title="列表模式"><span class="glyphicon glyphicon-list"></span>&nbsp;列表</a></li>
+                <li {% if not user_session.logined or user_session.preference_problem_detail_mode %}class="active"{% endif %}><a href="javascript:void(0)" id="btn_preference_pdl" title="详情模式"><span class="glyphicon glyphicon-th-large"></span>&nbsp;详情</a></li>
+            </ul>
+            {{ pager }}
+            {% include "problem/archive/list_body.html" %}
+             {{ pager }}
+        </div>
+    </div>
+
+
+</div>
+{% endblock %}
+{% block page_script %}
+
+<script type="text/javascript">
+    $(function () {
+        $("#left_silder").BootSideMenu();
+
+        var $bm_form = $("#batch-manage-form");
+        var classify_id = {{ classify_id }};
+        $bm_form.find(".batch-manage-checkbox").change(function () {
+           if($bm_form.find(".batch-manage-checkbox:checked").length > 0){
+               $("#btn-bm-visiable, #btn-bm-invisiable, #btn-bm-moveto").removeClass("disabled");
+           }else{
+               $("#btn-bm-visiable, #btn-bm-invisiable, #btn-bm-moveto").addClass("disabled");
+           }
+        });
+        $bm_form.find("#select-all").change(function () {
+            $bm_form.find(".batch-manage-checkbox").prop("checked", $(this).prop("checked")).change();
+        });
+        var filter_url="{% url 'problem_archive_get_filter_page' %}?keyword=$1&author_id=$2&author_type=$3&diff=$4&desc=$5&asgn_id=$6";
+        $("#btn-archive-filter").click(function () {
+           $.ModalBox({
+                title: '筛选评测结果',
+                mode: "url",
+                url: filter_url.replace("$1", "{{ keyword |default:'' }}").replace("$2", "{{ author_id |default:'' }}").replace("$3", "{{ author_type }}").replace("$4", "{{ diff }}").replace("$5", "{{ desc }}").replace("$6", "{{ asgn_id }}"),
+                loaded: function () {
+                    $("#problem_filter_form").attr("action", "{% url "problem_archive" %}")
+                },
+                default_btn_action: function () {
+                    $("#problem_filter_form").submit();
+                }
+           }).show();
+        });
+        $("#btn-desc-order").click(function () {
+            var s = window.location.search.replace("?");
+            if(s==""){
+                window.location.search = "?desc=1";
+            }else{
+                if(s.indexOf('desc=1') == -1) {
+                    window.location.search += "&desc=1";
+                }else{
+                    window.location.search =  window.location.search.replace("&desc=1", "");
+                }
+            }
+        });
+        {% if asgn_id == "" %}
+        $("#btn-bm-invisiable").click(function () {
+            if($(this).hasClass("disabled")) return false;
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({body: entity.msg, color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).submit_form("#batch-manage-form",'{% url 'problem_mgr_batch_change_visiable' 0 %}');
+        });
+        $("#btn-bm-visiable").click(function () {
+            if($(this).hasClass("disabled")) return false;
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({body: entity.msg, color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).submit_form("#batch-manage-form",'{% url 'problem_mgr_batch_change_visiable' 1 %}');
+        });
+        $("#btn-bm-moveto").click(function () {
+            if($(this).hasClass("disabled")) return false;
+            $.ModalBox({
+                title: '移动到分类',
+                mode: "url",
+                size: "small",
+                url: "{% url 'problem_classify_selector' %}",
+                default_btn_action: function () {
+                    $("#batch-manage-form").unbind("submit").submit(function () {
+                        var cid = $("#problem_classify_selector_id").val();
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({body: entity.msg, color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                                }else{
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                                }
+                            }
+                        }).submit_form("#batch-manage-form",'{% url 'problem_mgr_save_classify_to_problem' 0 %}'.replace("0", cid));
+                        return false;
+                    }).submit();
+                }
+            }).show();
+        });
+        {% else %}
+        $("#btn-asgn-problem").click(function () {
+            if($(this).hasClass("disabled")) return false;
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    console.log(flag);
+                    if(flag){
+                        $.AlertBox({body: entity.msg, color: "success", title: "操作成功", callback: function(){
+                            var plist_url = '{% url 'asgn_problem_list' asgn_id %}';
+                            if (window.opener.location.href.indexOf(plist_url) > -1){
+                                window.opener.location.reload();
+                            }else{
+                                window.opener.location.href = plist_url;
+                            }
+                            window.close();
+                        }
+                    }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).submit_form("#batch-manage-form",'{% url 'asgn_mgr_add_problems' asgn_id %}');
+        });
+        {% endif %}
+        $("#btn_preference_pdl").click(function () {
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    if(flag){
+                        window.location.reload();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).call("{% url 'account_change_preference_problem_detail_list' 1 %}")
+        });
+        $("#btn_preference_pcl").click(function () {
+            $.GRestP({
+                responseType: "json",
+                callback: function (flag, entity) {
+                    if(flag){
+                        window.location.reload();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                    }
+                }
+            }).call("{% url 'account_change_preference_problem_detail_list' 0 %}")
+        });
+        $("#problem_classify_list").on('changed.jstree', function (e, data) {
+            if (data.selected.length>0){
+                classify_id = data.instance.get_node(data.selected[0]).id;
+                $("#clist-btn-new, #clist-btn-modify, #clist-btn-delete").removeClass("disabled");
+                if(classify_id != {{ classify_id }}){
+                    {% if asgn_id == "" %}
+                        window.location.href="{% url 'problem_archive' %}?classify_id=" + classify_id;
+                    {% else %}
+                        window.location.href="{% url 'problem_archive' %}?asgn_id={{ asgn_id }}&classify_id=" + classify_id;
+                    {% endif %}
+                }
+            }else{
+                $("#clist-btn-new, #clist-btn-modify, #clist-btn-delete").addClass("disabled");
+            }
+        }).jstree({
+            'core': {
+                "multiple" : false,
+                'data': {
+                    "url": function (node) {
+                        return node.id==="#" ? '{% url 'problem_get_classify_list' classify_id %}' : '{% url 'problem_get_classify_list' %}';
+                    },
+                    "data": function (node) {
+                        return { "id" : node.id };
+                    }
+                }
+            }
+        });
+        {% if user_session.user_role >= 2 %}
+        $("#clist-btn-new").click(function () {
+            $.ModalBox({
+                title: '新增分类',
+                mode: "url",
+                size: "small",
+                url: "{% url 'problem_new_classify' 0 %}".replace("0", classify_id),
+                loaded: function () {
+                    $("#problem_classify_editor_form").submit(function () {
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                console.log(flag);
+                                if(flag){
+                                    $.AlertBox({body: "新分类增加成功", color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                                }else{
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#problem_classify_editor_form").submit();
+                }
+            }).show();
+        });
+        $("#clist-btn-modify").click(function () {
+            $.ModalBox({
+                title: '修改分类',
+                mode: "url",
+                size: "small",
+                url: "{% url 'problem_modify_classify' 0 %}".replace("0", classify_id),
+                loaded: function () {
+                    $("#problem_classify_editor_form").submit(function () {
+                        $.GRestP({
+                            responseType: "json",
+                            callback: function (flag, entity) {
+                                console.log(flag);
+                                if(flag){
+                                    $.AlertBox({body: "分类名称修改成功", color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();
+                                }else{
+                                    $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#problem_classify_editor_form").submit();
+                }
+            }).show();
+        });
+        $("#clist-btn-delete").click(function () {
+            $.ConfirmBox({
+                title: "提示",
+                body: "删除分类并删除其所有子分类，确定吗？题目不会被删除，但是会被永久移出分类。",
+                color: 'warning',
+                callback: function (flag) {
+                    if(!flag){return false;}
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    body: "分类删除成功",
+                                    color: "success",
+                                    title: "操作成功",
+                                    callback: function () {
+                                        $.ModalBox({}).hide();
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                            }
+                        }
+                    }).call('{% url 'problem_delete_classify' 0 %}'.replace('0', classify_id));
+                }
+            }).show();
+        });
+
+        {% endif %}
+    });
+</script>
+{% endblock %}

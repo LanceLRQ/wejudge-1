@@ -1,0 +1,70 @@
+{% load count_set %}
+<div class="my-tab-container">
+    <h3>{{ now_course.name }}&nbsp;<small>{{ now_course.department.name }} / {{ now_course.year }}-{{ now_course.year|add:1 }}学年第{{ now_course.term }}学期</small></h3>
+    <hr>
+    <strong>
+        任课教师：{{ now_course.teacher.realname }}<br />
+        {% if now_course_assistants != None %}课程助教：{% for ast in now_course_assistants %}{{ ast.realname }}({{ ast.id }})；{% endfor %}<br />{% endif %}
+    </strong>
+    {% if user_session.user_role == 1 %}
+    <hr />
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>我的上课时间</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for arr in my_arrangement %}
+            <tr>
+                <td>{{ arr.toString }}</td>
+                {#<td><a href="javascript:void(0)" class="remove-arrangement" arrid="{{ arr.id }}">退选</a></td>#}
+            </tr>
+            {% empty %}
+                <tr>
+                    <td>没有您的选课信息</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <hr />
+    {% for arr in now_course_students  %}
+        <strong>{{ arr.name }}</strong><br />
+        {% for stu in arr.students %}
+        {{ stu.realname }} ({{ stu.id }})；
+        {% empty %}
+            暂无
+        {% endfor %}
+        <br /><br />
+    {% endfor %}
+</div>
+{#<script type="text/javascript">#}
+{#$(function () {#}
+{#   $(".remove-arrangement").click(function () {#}
+{#       var id=$(this).attr('arrid');#}
+{#        $.ConfirmBox({#}
+{#           "title": "操作确认",#}
+{#           "body": "确定要退选该排课吗？",#}
+{#           "color": "danger",#}
+{#           callback: function (flag) {#}
+{#               if (flag) {#}
+{#                    $.GRestP({#}
+{#                        url: "{% url 'education_remove_arrangement' now_course.id 0 %}".replace('arrangement/0', "arrangement/" + id),#}
+{#                        method: "post",#}
+{#                        responseType: "json",#}
+{#                        callback: function (flag, entity) {#}
+{#                            if(flag){#}
+{#                                $.AlertBox({body: "该排课已经退选", color: "success", title: "操作成功", callback: function(){window.location.reload();} }).show();#}
+{#                            }else{#}
+{#                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败" }).show();#}
+{#                            }#}
+{#                        }#}
+{#                    }).call()#}
+{#               }#}
+{#           }#}
+{#        }).show();#}
+{#    });#}
+{#});#}
+{#</script>#}

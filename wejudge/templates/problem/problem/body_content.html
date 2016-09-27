@@ -1,0 +1,42 @@
+{% autoescape off %}
+
+    <h4 style="line-height: 24px;">{{ problem.description }} </h4>
+    <hr>
+    <h4>输入要求</h4>
+    <div class="well" style="overflow: auto;">
+        <h5 style="line-height: 24px;">{{ problem.input }}</h5>
+    </div>
+
+    <h3>输出要求</h3>
+    <div class="well" style="overflow: auto;">
+        <h5 style="line-height: 24px;">{{ problem.output }}</h5>
+    </div>
+
+    <h4>测试数据示例</h4>
+    <div class="well">
+        <div class="row">
+            <div class="col-md-6"><h4>输入</h4><code class="well well-sm" style="display: block">{{ problem.sample_input |default:"&nbsp;" }}</code></div>
+            <div class="col-md-6"><h4>输出</h4><code class="well well-sm" style="display: block">{{ problem.sample_output|default:"&nbsp;" }}</code></div>
+        </div>
+    </div>
+
+    {%if problem.hint != None and problem.hint != '' %}
+        <h4>小贴士</h4>
+        <div class="well" style="overflow: auto;">
+            <h5 style="line-height: 24px;">{{ problem.hint }}</h5>
+        </div>
+    {% endif %}
+
+    {% if problem.source != None and problem.source != ''  %}
+        <h4>来源</h4>
+        <div class="well">
+            <h5 style="line-height: 24px;">{{ problem.source }}</h5>
+        </div>
+    {% endif %}
+
+{% endautoescape %}
+<script type="text/javascript">
+    $(function () {
+        $(".problem_demo_code").css("display", "none").css("border", "1px solid #ddd").css("padding", "10px").after("<div><a href='javascript:void(0)' onclick='$(\".problem_demo_code\").toggle();'>[显示/隐藏代码]</a></div>")
+    });
+</script>

@@ -1,0 +1,39 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+        setTimeout(function () {
+            $(pointer).show();
+        },2500);
+        setTimeout(function () {
+            location.href="{% url 'helper_guide_student_viewer' 17 %}";
+        },4000)
+    });
+</script>
+{% endblock %}
+{% block page_body %}
+    <div id="head">
+        <div id="head-backphoto">
+            <img src="/static/guide/students/img/workHead.png" width="100%" height="100%">
+        </div>
+    </div>
+</div>
+<div id="main">
+    <div id="mainPhoto"></div>
+    <div >
+        <img src="/static/guide/students/img/H1.png" width="100%" height="100%">
+        <img src="/static/guide/students/img/H2.png" width="100%" height="100%">
+        <img src="/static/guide/students/img/H3.png" width="100%" height="100%">
+    </div>
+    <div id="pointer" style="position: absolute;left: 480px;top:280px;display: none"><img src="/static/guide/students/img/箭头图案.png"></div>
+    <div id="intro"style="position:absolute;left:920px;top:-10px; display: none">
+        <img src="/static/guide/students/img/便签副本.png">
+        <p id="word" style="top:100px;display: none" class="introduce">
+            现在就让我们看一下如何<br>
+            提交代码吧<br>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+<script type="text/javascript">
+    $(function () {
+    function upload(){
+        $("#uploadFileBtn").prop('disabled', true);
+        $("#uploadProgressBar").show();
+        var fd = new FormData();
+        fd.append("uploadFileIn", document.getElementById('uploadFileIn').files[0]);
+        fd.append("uploadFileOut", document.getElementById('uploadFileOut').files[0]);
+        $.GRestP({
+            url: '{% url 'problem_mgr_upload_testdata_api' problem.id td.handle %}',
+            formdata: fd,
+            responseType: 'json',
+            success:function(data){
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+                if(data.flag){
+                    $.AlertBox({
+                        title: '上传成功',
+                        body: '上传成功',
+                        color: "success",
+                        callback: function () {
+                            history.go(-1);
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        color: "danger",
+                        title: '上传失败',
+                        body: data.msg
+                    }).show();
+                }
+            },
+            error: function () {
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '请求时发生错误'
+                }).show();
+            },
+            abort: function () {
+                $("#uploadFileBtn").prop('disabled', false);
+                $("#uploadProgressBar").hide();
+            },
+            progress: function (perc, loaded, total) {
+                $("#uploadProgressBarBody").css('width', perc + "%").text(parseInt(perc) + "%");
+            }
+        }).upload();
+    }
+   if (window.File && window.FileReader && window.FileList && window.Blob)
+    {
+        $('#uploadFile').on("change", function (){
+            var f = document.getElementById('uploadFile').files[0];
+            if (f == undefined){
+                $("#uploadFileBtn").prop('disabled', true);
+                return;
+            }
+            var fsize = f.size;
+            var ftype = f.type;
+            if(fsize > 1048576 * 16){
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '上传文件过大'
+                }).show();
+                $("#uploadFileBtn").prop('disabled', true);
+                return;
+            }
+            $("#uploadFileBtn").prop('disabled', false);
+        });
+        $("#uploadForm").submit(function(){
+            upload();
+            return false;
+        });
+    }else{
+       $.AlertBox({
+            title: '错误',
+            body: '检测到你的浏览器不支持FileAPI，无法使用上传功能',
+            color: "danger",
+            callback: function () {
+                $.ModalBox({}).hide();
+            }
+        }).show();
+    }
+});
+</script>
+<form id="uploadForm" action="" method="post" enctype="multipart/form-data">
+    <h4>测试数据名称：{{ td.name }}；UUID：{{ td.handle }}</h4><br>
+    <div class="input-group">
+        <div class="input-group-addon">输入数据</div>
+        <input type="file" name="uploadFileIn" id="uploadFileIn" class="form-control"/>
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">输出数据</div>
+        <input type="file" name="uploadFileOut" id="uploadFileOut" class="form-control"/>
+    </div>
+
+    <hr/>
+    <button class="btn btn-success" type="submit" id="uploadFileBtn">上传</button><br />
+    <div class="progress" style="margin-top: 6px; display: none;" id="uploadProgressBar">
+        <div id="uploadProgressBarBody" class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" style="width: 0%">
+            Uploading...
+        </div>
+    </div>
+    <br/>
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;小提示：未选择文件的项目将不会上传也不会替换数据。<br/>
+    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;警告：由于Linux评测环境，如果测试数据文件包含中文，请务必上传UTF-8编码格式的测试数据文档，否则无法使用！<br/>
+    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;警告：Windows下的文本文件换行符默认是\r\n，Unix和Linux是\n，请根据题目需要注意<strong>输出数据</strong>的换行格式
+    <br><strong>(强烈建议为\n)</strong>。
+</form>

@@ -1,0 +1,11 @@
+{% extends "asgn/base.html" %}
+{% block asgn_page_title%}{{ problem.id }}. {{ problem.title }}{% endblock %}
+{% block page_head %}
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+{% endblock %}
+{% block asgn_page_body %}
+    {% include "problem/problem/body.html" %}
+{% endblock %}
+{% block asgn_page_script %}
+    {% include "problem/problem/body_script.html" %}
+{% endblock %}

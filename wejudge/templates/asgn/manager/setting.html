@@ -1,0 +1,32 @@
+{% extends "asgn/base.html" %}
+{% block asgn_page_title%}作业设置{% endblock %}
+{% block asgn_page_body %}
+    {% include "asgn/manager/setting_body.html" %}
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $("#asgn_setting_form").submit(function () {
+            $.GRestP({
+               responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({
+                            body: "作业设置保存成功",
+                            color: "success",
+                            title: "操作成功",
+                            callback: function () {
+                                $.ModalBox({}).hide();
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+    </script>
+{% endblock %}

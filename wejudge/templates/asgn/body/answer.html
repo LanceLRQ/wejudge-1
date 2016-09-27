@@ -1,0 +1,58 @@
+{% extends "asgn/base.html" %}
+{% load language_called %}
+{% block asgn_page_title%}参考答案{% endblock %}
+{% block asgn_page_body %}
+    {% if permission.1 < 1%}
+    <div class="panel panel-danger">
+      <div class="panel-heading">
+        <h3 class="panel-title">暂未开放</h3>
+      </div>
+      <div class="panel-body">
+        参考代码将会在作业结束后开放
+      </div>
+    </div>
+    {% else %}
+    {% for demo in demos %}
+    <div class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">{{ demo.pid }} - {{ demo.pname }}</h3>
+        </div>
+            {% if demo.code != None %}
+            <textarea class="codes" id="code_{{ demo.pid }}" data-lang="{{ demo.lang }}">{{ demo.code }}</textarea>
+            <div class="panel-footer">代码语言：{{ demo.lang | language_called }}</div>
+            {% else %}
+            <div class="panel-body">暂无代码</div>
+            {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+{% endblock %}
+{% block asgn_page_script %}
+    <link rel="stylesheet" href="/static/codemirror/lib/codemirror.css">
+<script src="/static/codemirror/lib/codemirror.js"></script>
+<script src="/static/codemirror/mode/clike/clike.js"></script>
+<script src="/static/codemirror/mode/javascript/javascript.js"></script>
+<script type="text/javascript">
+$(function () {
+    var editorMode = {
+        "gcc": "text/x-csrc",
+        "gcc-cpp": "text/x-c++src",
+        "java": "text/x-java"
+    };
+    $.each($(".codes"), function (idx, $val) {
+        var lang = $(this).attr("data-lang");
+        lang = editorMode[lang];
+        if(lang==undefined){
+            lang = "text/x-csrc";
+        }
+        CodeMirror.fromTextArea($val, {
+            lineNumbers: true,
+            mode: lang,
+            matchBrackets: true,
+            showCursorWhenSelecting: true,
+            readOnly: true
+        });
+    });
+});
+</script>
+{% endblock %}

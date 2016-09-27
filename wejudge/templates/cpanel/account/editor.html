@@ -1,0 +1,38 @@
+<form action="{% if type == "modify" %}{% url 'cpanel_accountmgr_save_modify_account' account.id %}{% else %}{% url "cpanel_accountmgr_save_new_account" %}{% endif %}" method="post" id="form_account_editor">
+    <div class="input-group">
+        <div class="input-group-addon">账号</div>
+        <input type="text" name="user_id" class="form-control" {% if type == "modify" %}disabled{% endif %} value="{{ account.id }}">
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">用户密码</span>
+        <input type="text" name="password" class="form-control" value="" placeholder="{% if type == "modify" %}不填写则维持原密码{% else %}不填写则默认是123456{% endif %}" />
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">用户昵称</span>
+        <input type="text" name="nickname" class="form-control" value="{{ account.nickname | default:'' }}"/>
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">真实姓名</span>
+        <input type="text" name="realname" class="form-control" value="{{ account.realname | default:'' }}"/>
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">用户类型</span>
+        <select class="form-control" name="role" value="{{ account.role }}">
+            <option value="0" {% if account.role == 0 %}selected{% endif %}>普通用户</option>
+            <option value="1" {% if account.role == 1 %}selected{% endif %}>学生</option>
+            <option value="2" {% if account.role == 2 %}selected{% endif %}>教师</option>
+            <option value="99" {% if account.role == 99 %}selected{% endif %}>网站管理员</option>
+        </select>
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">用户邮箱</span>
+        <input type="text" name="email" class="form-control" value="{{ account.email | default:'' }}"/>
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">个性签名</span>
+        <textarea type="text" name="motto" class="form-control">{{ account.motto | default:'' }}</textarea>
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon"><input type="checkbox" name="locked" id="" value="1" {% if account.locked %}checked{% endif %}> 锁定账号</div>
+    </div>
+</form>

@@ -1,0 +1,17 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+    <div id="intro" style="position: absolute; width: 500px; margin-left: -250px; left: 50%; margin-top: 100px;" >
+        <h1 style="color: whitesmoke;" >我是一段不怎么好喝的鸡汤</h1><br />
+        <h4 style="color: whitesmoke;">
+            在学习代码的过程中，你可能会感觉到很困难，很枯燥。但生活就像海洋，只有意志坚强的人，才能到达彼岸（广东的同学熟不熟悉）希望各位同学在未来的学习道路中能一帆风顺！<br>
+        </h4><br />
+        <a class="btn btn-success btn-lg" href="{% url 'helper_guide_student_viewer' 1 %}">再看一遍</a>
+    </div>
+    <div>
+        <img src="/static/bgimgs/1.jpg" width="1260" height="800">
+    </div>
+{% endblock %}

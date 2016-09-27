@@ -1,0 +1,109 @@
+{% load full_time %}
+{% load get_week %}
+<div class="my-tab-container">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th></th>
+                <th>周次</th>
+                <th>星期</th>
+                <th>节次</th>
+                <th>上课时间</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for arr in arrangement_list %}
+        <tr>
+            <td>#{{ forloop.counter }}</td>
+            <td>{{ arr.start_week }} - {{ arr.end_week }}</td>
+            <td>
+                {{ arr.day_of_week | get_week }}
+                {% if arr.odd_even == 1 %}
+                （单周）
+                {% elif arr.odd_even == 2 %}
+                （双周）
+                {% endif %}
+            </td>
+            <td>{{ arr.start_section }} - {{ arr.end_section }}</td>
+            <td>{{ arr.start_time| full_time:"time" }} - {{ arr.end_time| full_time:"time" }}</td>
+            <td>
+                <a href="javascript:void(0)" class="arrangement-signature" data-id="{{ arr.id }}">[选课授权码]</a>&nbsp;
+                <a href="javascript:void(0)" class="arrangement-modify" data-id="{{ arr.id }}">[编辑]</a>&nbsp;
+                <a href="javascript:void(0)" class="arrangement-delete" data-id="{{ arr.id }}">[删除]</a>
+            </td>
+        </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6">还没有排课信息</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <button class="btn btn-success" id="btn-new-arrangement">添加排课</button>
+</div>
+<script type="text/javascript">
+$(function () {
+
+    $("#btn-new-arrangement").click(function () {
+        $.GRestP({
+            callback: function (flag, entity) {
+                if(flag){
+                    $("#arrangement").html(entity);
+                }
+            }
+        }).call('{% url 'education_mgr_new_course_arrangement' course.id %}');
+    });
+    $("a.arrangement-signature").click(function () {
+        var id = $(this).attr("data-id");
+        $.ModalBox({
+            'title': '选课授权码',
+            'mode': 'url',
+            'url': '{% url 'education_mgr_get_arrangement_signature' course.id 0 %}'.replace("arrangement/0", "arrangement/"+id)
+        }).show();
+    });
+    $("a.arrangement-modify").click(function () {
+        var id = $(this).attr("data-id");
+        $.GRestP({
+            callback: function (flag, entity) {
+                if(flag){
+                    $("#arrangement").html(entity);
+                }
+            }
+        }).call('{% url 'education_mgr_modify_course_arrangement' course.id 0 %}'.replace("arrangement/0", "arrangement/"+id));
+    });
+    $("a.arrangement-delete").click(function () {
+        var id = $(this).attr("data-id");
+        $.ConfirmBox({
+            "title": "操作确认",
+            "body": "确定要删除这条排课记录吗？选择了该排课的学生将被自动移除。",
+            "color":"danger",
+            callback: function (flag) {
+                if (flag){
+                    $.GRestP({
+                        responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    title: "操作成功",
+                                    body: "排课记录删除成功！",
+                                    color: "success",
+                                    callback: function () {
+                                        window.location.reload();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({
+                                    body: entity.msg,
+                                    color: "danger",
+                                    title: "操作失败"
+                                }).show();
+                            }
+                        }
+                    }).call('{% url 'education_mgr_delete_course_arrangement' course.id 0 %}'.replace("arrangement/0", "arrangement/"+id));
+                }
+            }
+        }).show();
+    });
+});
+</script>

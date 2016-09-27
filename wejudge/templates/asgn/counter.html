@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load friendly_time %}
+{% load running_status %}
+{% load vrequire_status %}
+{% block page_title %}成绩统计 - {% endblock %}
+{% block page_body %}
+<div class="header_container"><h1>作业成绩统计 <small>/ {{ now_course.name }} - {{ web_config.year }}-{{ web_config.year|add:1 }}年，第{{ web_config.term }}学期</small></h1></div>
+<div class="page_container">
+    <div class="row">
+        <div class="col-sm-3">
+            <!--左侧选课栏目-->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                <h3 class="panel-title">我的选课</h3>
+                </div>
+                <div class="list-group">
+                    {% for course in course_list %}
+                    <a href="{% url 'asgn_index' course.id %}" class="list-group-item {% if course.id == now_course.id %}active{% endif %}">{{ course.name }}</a>
+                    {% empty %}
+                    <a class="list-group-item">您还没有选课</a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                <h3 class="panel-title">课程信息</h3>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">课程名称：{{ now_course.name }}</li>
+                    <li class="list-group-item">任课教师：{{ now_course.teacher.realname }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-sm-9">
+            <form action="{% url 'asgn_score_counter_result' now_course.id %}" id="asgn_counter_form" enctype="multipart/form-data" method="post">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">统计选项</h3>
+                            </div>
+                            <div class="panel-body">
+                                <label><input type="radio" name="type" value="all" checked onchange="if(this.checked) $('#upl_stuno_xls').prop('disabled', true);">导出所有</label>&nbsp;&nbsp;
+                                <label><input type="radio" name="type" value="stucode" onchange="if(this.checked) $('#upl_stuno_xls').prop('disabled', false); ">按学号模板导出</label>
+                                <hr>
+                                上传学号<a href="/resource/xls_template/asgn_score_counter_stucode.xls">模板</a>：
+                                <input type="file" id="upl_stuno_xls" name="stuno_xls" class="form-control" disabled>
+                                <hr>
+                                <button type="submit" class="btn btn-success" id="btn_start_export">导出数据</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="select-all" checked></th>
+                                    <th>作业名称</th>
+                                    <th>发布时间</th>
+                                    <th>占分比例</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for asgn in asgn_list %}
+                                <tr>
+                                    <td><input type="checkbox" name="aids" class="bm-checkbox" value="{{ asgn.id }}" checked></td>
+                                    <td>{{ asgn.name }}</td>
+                                    <td>{{ asgn.create_time | friendly_time }}</td>
+                                    <td><input name="ratio_{{ asgn.id }}" type="text" value="" size="5">%</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;说明：选中的作业将会计入成绩统计。占用比例如果留空则自动计算，数值范围0.0 - 100.0
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br>
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $("#asgn_counter_form").submit(function () {
+            $.AlertBox({
+                title: '正在导出',
+                body: '正在导出数据...<br />请留意浏览器弹出的下载提示',
+                color: "primary",
+                default_btn_title: '关闭'
+            }).show();
+        }).find("#select-all").change(function () {
+            $("#asgn_counter_form").find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+        });
+    });
+    </script>
+{% endblock %}

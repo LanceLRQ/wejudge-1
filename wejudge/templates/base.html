@@ -1,0 +1,90 @@
+{% load full_time %}
+<!DOCTYPE html>
+<html>
+<head lang="zh-CN">
+    <meta charset="UTF-8">
+    <title>{% block page_title %}{% endblock %}{{ web_config.web_title }}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ web_config.web_desc }}" />
+    <meta name="keywords" content="{{ web_config.web_keyword }}" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="bookmark" href="/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/app/master.css"/>
+    <script type="text/javascript" src="/static/library/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.grestp.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.modalbox.js"></script>
+    <script type="text/javascript" src="/static/library/wejudge.js?0.9.4b"></script>
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="/static/library/fuckie.js"></script>
+    <![endif]-->
+    {% block page_head %}{% endblock %}
+</head>
+<body>
+    <div id="main_container">
+        <div class="nav_placeholder"></div>
+        <!--导航部分-->
+        {% include "navbar.html" %}
+        <!--网站内容部分-->
+        <div class="page_body">
+        {% if web_config.web_notice != "" %}
+            <div class="alert alert-warning" style="margin-bottom: 0;"><strong>网站公告：</strong>{{ web_config.web_notice | safe }}</div>
+        {% endif %}
+        {% block page_body %}{% endblock %}
+        </div>
+    </div>
+     <!--网站页脚部分-->
+    <div id="footer">
+        &copy; 2015-2016 WeJudge Powered By BNUZ-LanceLRQ &nbsp;&nbsp;
+        网站版本：<a href="https://www.lanrongqi.com/wejudge-whats-new/" style="text-decoration: underline;">Ver.{{ web_config.web_version }}</a>&nbsp;&nbsp;
+        服务器时间：<span id="wejudge-server-timer"></span>
+    </div>
+
+    <!-- 常规模态框 -->
+    <div class="modal fade" id="generalModal" tabindex="-1" role="dialog" data-backdrop="static">
+      <div class="modal-dialog" id="generalModalDoc" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title"><span id="modal-title">&nbsp;</span></h4>
+          </div>
+          <div class="modal-body">
+              <div class="alert alert-danger" id="modal-body-messager" style="display: none;"></div>
+              <span id="modal-body">&nbsp;</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="modal-close-action-btn" class="btn btn-default" data-dismiss="modal">关闭</button>
+            <button type="button" id="modal-default-action-btn" class="btn btn-primary">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--消息模态框-->
+    <div class="modal fade" id="alertbox" tabindex="-2" role="dialog" data-backdrop="static">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title text-primary"><span id="alertbox-title">提示</span></h4>
+          </div>
+          <div class="modal-body text-primary">
+            <span id="alertbox-body">&nbsp;</span>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="alertbox-no-btn">否</button>
+            <button type="button" class="btn btn-primary" id="alertbox-yes-btn">是</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% block page_script %}
+    {% endblock %}
+    <script type="text/javascript">
+        $(function () {
+           WeJudge.set_normal_timer({{ web_config.server_time }}, "#wejudge-server-timer");
+        });
+    </script>
+</body>
+</html>

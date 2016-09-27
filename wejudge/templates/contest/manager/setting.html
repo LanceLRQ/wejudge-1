@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% load ranklist_firstac_sign %}
+{% block page_title %}比赛服设置 - {{ contest.title }} - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% if contest.start_time == 0 %}
+        <div class="alert alert-warning">
+        <span class="glyphicon glyphicon-info-sign"></span>&nbsp;您似乎是刚创建这个比赛，请先对比赛信息进行编辑
+        </div>
+    {% endif %}
+    <form id="contest_setting_form" action="{% url 'contest_mgr_save_contest_setting' contest.id %}" method="post">
+        <div class="input-group">
+            <div class="input-group-addon">比赛名称</div>
+            <input type="text" name="title" class="form-control" value="{{ contest.title }}"  maxlength="30">
+        </div>
+        <br/>
+        <div class="input-group">
+            <div class="input-group-addon">开始时间</div>
+            <input name="start_time" type="text" class="form-control start_time" value="{{ contest.start_time | full_time }}">
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">结束时间</div>
+            <input name="end_time" type="text" class="form-control end_time" value="{{ contest.end_time | full_time }}">
+        </div>
+        <h4>比赛首页内容</h4>
+        <textarea name="description" id="editor_description" placeholder="比赛服首页内容">{{ contest.description | default:"" }}</textarea><br />
+        <h4>访问权限<small>正则表达式，多个请用空行隔开。直接输入“all”表示可以所有人都可以查看。</small></h4>
+        <textarea name="user_limit" class="form-control" rows="10">{{ contest.user_limit }}</textarea><br>
+        <h4>裁判用户 <small>直接输入用户名，多个请用空行隔开。裁判只能查看封榜后的排行榜、修改评测结果（如果允许）和进行问答回复。</small></h4>
+        <textarea name="referees" class="form-control" rows="10">{{ contest.referees }}</textarea><br>
+        <div class="input-group">
+            <div class="input-group-addon"><input type="checkbox" name="pause_judge" value="1" {% if contest.pause %}checked{% endif %}>&nbsp;&nbsp;暂停评测</div>
+        </div>
+        <center><h4>评测语言设置</h4></center>
+        <div class="input-group">
+            <div class="input-group-addon">
+                <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in contest.lang or 'all' in contest.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+                <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in contest.lang or 'all' in contest.lang %}checked{% endif %}> C++&nbsp;&nbsp;
+                <input type="checkbox" name="lang" value="java" {% if 'java' in contest.lang or 'all' in contest.lang %}checked{% endif %}> Java
+            </div>
+        </div>
+        <br>
+        <center>
+            <button type="submit" class="btn btn-success">保存</button>
+        </center>
+    </form>
+</div>
+{% endblock %}
+{% block page_script %}
+    <link rel="stylesheet" href="/static/library/bootstrap-datetimepicker.min.css"/>
+    <script src="/static/library/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+    <script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+    <script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            CKEDITOR.replace( 'editor_description', { height:'25em' } );
+            window.onunload = function () {
+                sis.manuallyReleaseData();
+            };
+
+            var sis = $("#form-save-problem").sisyphus({
+                locationBased: true,
+                timeout: 0,
+                onSave: function () {
+                    $(window).bind('beforeunload',function(){
+                        return "确定离开此页面吗？未保存的内容将会丢失！";
+                    });
+                }
+            });
+            $(".start_time, .end_time").datetimepicker({
+                format: 'yyyy-mm-dd hh:ii:ss',
+                minuteStep: 1,
+                autoclose: true,
+                todayHighlight:true,
+                todayBtn:true
+            });
+            $("#contest_setting_form").submit(function () {
+                for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+                $.GRestP({
+                   responseType: 'json',
+                    callback: function (flag, entity) {
+                        if(flag){
+                            $.AlertBox({
+                                body: "比赛设置保存成功",
+                                color: "success",
+                                title: "操作成功",
+                                callback: function () {
+                                    $.ModalBox({}).hide();
+                                    window.location.reload();
+                                }
+                            }).show();
+                        }else{
+                            $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                        }
+                    }
+                }).submit_form(this);
+                return false;
+            });
+        });
+    </script>
+{% endblock %}

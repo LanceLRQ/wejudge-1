@@ -1,0 +1,32 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="head">
+    <div id="head-backphoto">
+        <img src="/static/guide/students/img/head.png" width="100%" height="100%">
+    </div>
+    <div id="square" style="position: absolute;left:144px;top:-12px;">
+        <img src="/static/guide/students/img/虚线方框 题库.png">
+    </div>
+</div>
+<div id="main">
+    <div >
+        <img src="/static/guide/students/img/main.png" width="100%" height="100%" id="mainPhoto">
+    </div>
+    <div id="intro"style="position:absolute;left:134px;top:30px;display: none">
+        <img src="/static/guide/students/img/便签.png">
+        <p class="introduce">
+            在这里可以查看已公开的所有<br>
+            题目，题目已经根据课程知识<br>
+            点和难易程度进行了分类。你<br>
+            可以选择任意想做的题目完成<br>
+            练习并提交代码也可以查看各<br>
+            题做题情况排行榜。
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 2 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:172px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

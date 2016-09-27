@@ -1,0 +1,16 @@
+<form action="{% url 'asgn_save_visit_req' asgn.id %}" method="post" id="visit_req_form">
+    <h4>当前学期：{{ web_config.year }}-{{ web_config.year|add:1 }}年，第{{ web_config.term }}学期；</h4>
+    <h5>作业名称：{{ asgn.name }}，课程名称：{{ asgn.course.name }}</h5>
+    <hr>
+    <div class="input-group">
+        <div class="input-group-addon">调课目的</div>
+        <select name="arrangement" id="" class="form-control" >
+            {% for arr in arrangements %}
+            <option value="{{ arr.id }}">{{ arr.toString }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br>
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;注意：每次作业仅有一次调课机会，请慎重选择并在调课后<strong class="text-danger">联系任课教师确认调课</strong>。<br>
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;申请操作不能撤销（<del>毕竟我不想写太多代码了累死本宝宝了</del>），如果误操作请联系老师删除本次调课申请。
+</form>

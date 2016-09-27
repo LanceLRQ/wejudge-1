@@ -1,0 +1,18 @@
+{% load load_json %}
+{% load get_attr %}
+<div id="demo-code-page-loading" align="center"><img src="/static/images/loader.gif"></div>
+<div id="demo-code-page">
+    <form id="demo-code-submit-form" action="{% url 'problem_mgr_save_demo_code' problem.id %}" method="post" enctype="multipart/form-data">
+        <div class="my-tab-container" style="padding: 0;">
+            <textarea id="demo-code-editor" name="content">{{ problem.demo_code | load_json |get_attr:"content" |default:"" }}</textarea>
+        </div>
+        <br />
+        <div class="btn-group">
+            <button class="btn btn-default slc-lang btn-primary lang-gcc" type="button" value="gcc">C语言</button>
+            <button class="btn btn-default slc-lang lang-gcc-cpp" type="button" value="gcc-cpp">C++</button>
+            <button class="btn btn-default slc-lang lang-java" type="button" value="java">Java</button>
+            <button class="btn btn-success" type="submit" id="btn_submit_demo_code">提交代码</button>
+        </div>
+        <input type="hidden" name="lang" value="gcc" id="code_lang" />
+    </form>
+</div>

@@ -1,0 +1,25 @@
+#pointer{
+    animation: anim 2s infinite;
+    -webkit-animation: anim 2s infinite;
+}
+@keyframes anim {
+    0%{
+        transform: translate(0px,0px);
+        -webkit-transform: translate(0px,0px);
+    }
+    100%{
+        transform: translate(-50px,-50px);
+        -webkit-transform: translate(-50px,-50px);
+    }
+}
+@-webkit-keyframes anim {
+    0%{
+        transform: translate(0px,0px);
+        -webkit-transform: translate(0px,0px);
+    }
+
+    100%{
+        transform: translate(-50px,-50px);
+        -webkit-transform: translate(-50px,-50px);
+    }
+}

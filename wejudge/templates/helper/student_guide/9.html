@@ -1,0 +1,33 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div>
+    <div id="head">
+        <div id="head-backphoto">
+            <img src="/static/guide/students/img/workHead.png" width="100%" height="100%">
+        </div>
+    </div>
+</div>
+<div id="main">
+    <div >
+        <img src="/static/guide/students/img/workMain.png" width="100%" height="100%" id="mainPhoto">
+    </div>
+    <div><img style="position: absolute;top: 150px;left: 334px;width:900px;height:120px;" src="/static/guide/students/img/作业列表.png"></div>
+    <div><img id="square" src="/static/guide/students/img/权限.png" style="position: absolute;top: 210px;left: 900px;"></div>
+    <div id="intro"style="position:absolute;left:880px;top:200px; display: none">
+        <img src="/static/guide/students/img/便签副本.png">
+        <p class="introduce" style="top:100px;">
+            当访问权限的图标显示为正在<br>
+            进行的时候你才能访问题目,<br>
+            括号后面显示的是题目的截止<br>
+            时间,你必须要在这个时间内<br>
+            完成所有题目才能成功的完成<br>
+            作业
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 10 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:210px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% load ranklist_firstac_sign %}
+{% block page_title %}在线问答 - {{ contest.title }} - {% endblock %}
+{% block page_head %}
+    <style type="text/css">
+    table > tbody > tr > td{
+        vertical-align: middle !important;
+    }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% if not is_referee and time_permission != 0 %}
+        {% if time_permission == -1 %}
+            <div class="alert alert-warning">比赛还没有开始</div>
+        {% elif time_permission == 1  %}
+            <div class="alert alert-danger">比赛已经结束</div>
+        {% endif %}
+    {% else %}
+    <a href="{% url 'contest_faq_new_msg' contest.id %}" class="btn btn-success">{% if is_referee %}发布全站公告{% else %}发起提问{% endif %}</a><br /><br />
+    <h4>{% if is_referee %}所有问答、公告{% else %}公开问答、公告{% endif %}</h4>
+    <hr />
+    {% for faq in faqs %}
+        <div class="panel {% if faq.answer_time != 0 or faq.is_notice %}panel-info{% else %}panel-danger{% endif %}">
+            <div class="panel-heading">
+                {% if faq.answer_time == 0 and not faq.is_notice %}<span class="label label-danger">未答复</span>&nbsp;&nbsp;{% endif %}
+                {% if faq.is_private == False %}
+                    {% if faq.is_notice %}
+                        <span class="label label-info">公告</span>
+                    {% else %}
+                        <span class="label label-info">公开问答</span>
+                    {% endif %}
+                    &nbsp;&nbsp;
+                {% endif %}
+                发起人：{{ faq.author.nickname }} ({{ faq.author.id }}）&nbsp;&nbsp;发起时间：{{ faq.create_time | full_time }}
+            </div>
+            <div class="panel-body">
+                <h4>主题: {{ faq.subject }}</h4>
+                {{ faq.content | safe }}
+                {% if faq.answer_time != 0 %}
+                <hr/>
+                <strong>裁判({{ faq.answer_referee.nickname }})回复：</strong><br />
+                {{ faq.answer_content }}<br />  <small>于{{ faq.answer_time | full_time }}</small>
+                {% endif %}
+            </div>
+            {% if is_referee %}
+            <div class="panel-footer">
+                {% if not faq.is_notice %}
+                <a href="{% url 'contest_faq_reply_msg' contest.id faq.id %}" class="btn btn-primary btn-sm">回复</a>
+                {% endif %}
+                <a href="javascript:void(0)" data-id="{{ faq.id }}" class="btn btn-danger btn-sm btn-delete-faq">删除</a>
+            </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            <span class="glyphicon glyphicon-info-sign">&nbsp;暂时还没有公告、公开问答信息</span>
+        </div>
+    {% endfor %}
+    <h4>我的{% if is_referee %}公告{% else %}提问{% endif %}</h4>
+    <hr />
+    {% for faq in my_faqs %}
+        <div class="panel {% if faq.answer_time != 0 or faq.is_notice %}panel-info{% else %}panel-danger{% endif %}">
+            <div class="panel-heading">
+                {% if faq.answer_time == 0  and not faq.is_notice %}<a class="label label-danger">未答复</a>&nbsp;&nbsp;{% endif %}提问人：{{ faq.author.nickname }} ({{ faq.author.id }}）&nbsp;&nbsp;提问时间：{{ faq.create_time | full_time }}
+            </div>
+            <div class="panel-body">
+                <h4>主题: {{ faq.subject }}</h4>
+                {{ faq.content | safe }}
+                {% if faq.answer_time != 0 %}
+                <hr/>
+                <strong>裁判({{ faq.answer_referee.nickname }})回复：</strong><br />
+                {{ faq.answer_content }}<br />  <small>于{{ faq.answer_time | full_time }}</small>
+                {% endif %}
+            </div>
+            {% if is_referee or faq.answer_time == 0 %}
+            <div class="panel-footer">
+                <a href="javascript:void(0)" data-id="{{ faq.id }}" class="btn btn-danger btn-sm btn-delete-faq">删除</a>
+            </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            <span class="glyphicon glyphicon-info-sign">&nbsp;您还没有{% if is_referee %}发布公告{% else %}提问{% endif %}</span>
+        </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+    $(function () {
+        $(".btn-delete-faq").click(function () {
+            var id = $(this).attr("data-id");
+            $.ConfirmBox({
+                "title": "操作确认",
+                "body": "确认要删除该信息吗？",
+                "color":"danger",
+                callback: function (flag) {
+                    if (flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "删除操作",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.reload();
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'contest_faq_del' contest.id %}?id=' + id);
+                    }
+                }
+            }).show();
+        });
+    });
+    </script>
+{% endblock %}

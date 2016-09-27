@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% block page_title%}{{ contest.title }} - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% for faq in faqs %}
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                {% if faq.is_notice %}
+                    <span class="label label-info">公告</span>
+                {% else %}
+                    <span class="label label-info">公开问答</span>
+                {% endif %}
+                &nbsp;&nbsp;
+                发起人：{{ faq.author.nickname }} ({{ faq.author.id }}）&nbsp;&nbsp;发起时间：{{ faq.create_time | full_time }}
+            </div>
+            <div class="panel-body">
+                <h4>主题: {{ faq.subject }}</h4>
+                {{ faq.content | safe }}
+                {% if faq.answer_time != 0 %}
+                <hr/>
+                <strong>裁判({{ faq.answer_referee.nickname }})回复：</strong><br />
+                {{ faq.answer_content }}<br />  <small>于{{ faq.answer_time | full_time }}</small>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    {{ contest.description | default:"欢迎参加本次比赛！" | safe }}
+</div>
+{% endblock %}

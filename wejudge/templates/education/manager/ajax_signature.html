@@ -1,0 +1,11 @@
+{% load full_time %}
+<div align="center">
+    <h3>当前排课选课授权码为</h3><br />
+    <h1 style="letter-spacing: 20px;">{{ signature.0 }}</h1>
+    <br />
+    <h4>课程名称：{{ course.name }}; 任课教师：{{ course.teacher.realname }}</h4>
+    <h4>对于排课时间：{{ arrangement }}</h4>
+    <h4>授权失效时间：{{ signature.1 | full_time }}</h4>
+    <br />
+    <h6>授权码的有效时间是7天，过期后再次打开此窗口将重新生成</h6>
+</div>

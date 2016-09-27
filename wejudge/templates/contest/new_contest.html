@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load contest_status %}
+{% load full_time %}
+{% block page_title %}创建在线比赛 - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>创建在线比赛</h1>
+</div>
+<div class="page_container">
+    <form action="{% url 'save_new_contest' %}" method="post">
+        <div class="bs-callout bs-callout-warning">
+            <h4 class="text-warning">欢迎使用WeJudge在线比赛系统</h4>
+            <p>
+                请阅读以下内容，以确保在使用过程中避免不必要的纠纷
+            </p>
+            <p>
+                <!--0. 比赛系统内测期间仅支持“ACM协会”创建比赛。:-)<br />-->
+                1. 在线比赛系统当前处于测试阶段，可能存在不可预测的问题，如有发现请及时向系统管理员反馈。 <br />
+                2. 由于Java语言评测存在时间、内存判定不准确的问题，比赛并不建议开放Java语言评测，强行使用后果自负。（^.^) <br />
+                3. 由于比赛系统和教学辅助评测系统共用判题队列，如果有需要关闭辅助教学评测系统的评测，请与管理员进行联系。<br />
+                4. Have Fun!
+            </p>
+        </div>
+         <div class="input-group">
+            <div class="input-group-addon">比赛名称</div>
+            <input type="text" name="title" class="form-control" value="{{ contest.title }}" maxlength="30">
+         </div><br />
+        <label for=""><input type="checkbox" name="agree" value="1"> 我同意使用本系统进行在线ACM比赛，并遵守相关协议的规定</label><br /><br />
+        <button class="btn btn-success">创建比赛</button>
+    </form>
+</div>
+{% endblock %}

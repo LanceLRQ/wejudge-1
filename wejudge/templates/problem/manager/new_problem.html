@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block page_title %}新建题目 - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>发布新题目</h1>
+</div>
+<div class="page_container">
+
+    {% include "problem/manager/problem_editor.html" %}
+</div>
+{% endblock %}
+{% block page_script %}
+<script type="text/javascript" src="/static/library/linkagesel-min.js"></script>
+<script type="text/javascript" src="/static/library/jstorage.min.js"></script>
+<script type="text/javascript" src="/static/library/sisyphus.min.js"></script>
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        CKEDITOR.replace( 'editor_description', { height:'25em' } );
+        CKEDITOR.replace( 'editor_input' );
+        CKEDITOR.replace( 'editor_output' );
+        CKEDITOR.replace( 'editor_sample_input' );
+        CKEDITOR.replace( 'editor_sample_output' );
+        CKEDITOR.replace( 'editor_hint' );
+
+        window.onunload = function () {
+            sis.manuallyReleaseData();
+        };
+
+        var sis = $("#form-save-problem").sisyphus({
+            locationBased: true,
+            timeout: 0,
+            onSave: function () {
+                $(window).bind('beforeunload',function(){
+                    return "确定离开此页面吗？未保存的内容将会丢失！";
+                });
+            }
+        });
+    });
+    $(".btn-difficutly").click(function () {
+        var val = $(this).attr('dat-value');
+        $("#form-difficulty").val(val);
+        $("#difficutly_dropdown_title").text($(this).text());
+    });
+    $("#form-save-problem").submit(function () {
+        for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if(flag){
+                    $.AlertBox({
+                        title: "发布成功",
+                        body: "题目发布成功，接下来请为其添加测试数据，并启动评测。<br /><br />刚添加的题目默认是不会在题库出现的，<br />如要设置请在问题列表管理内设置",
+                        size: "md",
+                        color: "success",
+                        callback: function () {
+                            $(window).unbind('beforeunload');
+                            window.location.href="{% url 'problem_mgr_modify_problem' 0 %}#test-data".replace("problem/0", "problem/" + entity.data);
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "发布失败"
+                    }).show();
+                }
+            }
+        }).submit_form(this, '{% url 'problem_mgr_save_new_problem' %}');
+        return false;
+    });
+</script>
+{% endblock %}

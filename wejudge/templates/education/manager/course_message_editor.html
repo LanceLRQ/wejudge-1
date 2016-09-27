@@ -1,0 +1,72 @@
+{% load full_time %}
+<div class="my-tab-container">
+    <form method="post" id="form_message" action="{% if type == "new" %}{% url 'education_mgr_save_new_course_message' course.id %}{% else %}{% url 'education_mgr_save_modify_course_message' course.id message.id %}{% endif %}" class="form">
+        <div class="input-group">
+            <span class="input-group-addon">通知标题</span>
+            <input type="text" name="title" value="{{ message.title | default:'' }}" class="form-control"/>
+        </div><br />
+        <div class="input-group">
+            <div class="input-group-addon">截止时间</div>
+            <input type="text" class="form-control" id="deadline" value="{{ message.deadline | default:0 | full_time }}" placeholder="1970-01-01 08:00" name="deadline">
+        </div><br />
+        <textarea name="content"  id="editor_content" id="content">{{ message.content | default:'' }}</textarea><br />
+        <input type="submit" value="发布" class="btn btn-success"/>
+    </form>
+</div>
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"></script>
+<script type="text/javascript">
+$(function () {
+    var dTime = new Date();
+    dTime.setSeconds(0);
+    $("#deadline").datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',
+        minuteStep: 1,
+        autoclose: true,
+        todayHighlight:true,
+        todayBtn:true,
+        initialDate: dTime
+    });
+
+    CKEDITOR.replace( 'editor_content', { height:'25em' } );
+
+    window.onunload = function () {
+        sis.manuallyReleaseData();
+    };
+
+    var sis = $("#form_message").sisyphus({
+        locationBased: true,
+        timeout: 0,
+        onSave: function () {
+            $(window).bind('beforeunload',function(){
+                return "确定离开此页面吗？未保存的内容将会丢失！";
+            });
+        }
+    });
+    $("#form_message").submit(function () {
+        for (var ins in CKEDITOR.instances) CKEDITOR.instances[ins].updateElement();
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if(flag){
+                    $.AlertBox({
+                        title: "发布成功",
+                        body: "通知发布成功！",
+                        color: "success",
+                        callback: function () {
+                            $(window).unbind('beforeunload');
+                            window.location.reload();
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "发布失败"
+                    }).show();
+                }
+            }
+        }).submit_form(this);
+        return false;
+    });
+});
+</script>

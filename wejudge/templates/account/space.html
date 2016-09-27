@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block page_title %}个人主页：{{ account.nickname }} - {% endblock %}
+{% block page_head %}
+
+{% endblock %}
+{% block page_body %}
+    <div class="header_container">
+        <h1>{{ account.nickname }} <small> / {% if account.motto == None or account.motto == '' %}{{ account.id }}{% else %}<span title="{{ account.motto }}">{{ account.motto | slice:"50" }}</span>{% endif %}</small></h1>
+    </div>
+<div class="page_container">
+    <ul class="nav nav-tabs" role="tablist" style="margin: 0 auto;">
+            <li role="presentation"><a href="#home" id="tab-btn-home" data-toggle="tab" role="tab">个人信息</a></li>
+            {% if user_session.user_id == account.id %}
+            <li role="presentation"><a href="#avatar" id="tab-btn-avatar" data-toggle="tab" role="tab">上传头像</a></li>
+            <li role="presentation"><a href="#setting" id="tab-btn-setting" data-toggle="tab" role="tab">账户设置</a></li>
+            <li role="presentation"><a href="#wechat" id="tab-btn-wechat" data-toggle="tab" role="tab">微信绑定</a></li>
+            {% endif %}
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane" id="home"></div>
+        <div role="tabpanel" class="tab-pane" id="avatar"></div>
+        <div role="tabpanel" class="tab-pane" id="setting"></div>
+        <div role="tabpanel" class="tab-pane" id="wechat"></div>
+    </div>
+</div>
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+        $("#tab-btn-home").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#home").html(entity);
+                    }
+                }
+            }).call('{% url 'account_user_detail' account.id %}');
+            window.location.hash = "home";
+        });
+        {% if user_session.user_id == account.id %}
+        $("#tab-btn-setting").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#setting").html(entity);
+                    }
+                }
+            }).call('{% url 'account_user_modify' account.id %}');
+            window.location.hash = "setting";
+        });
+        $("#tab-btn-avatar").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#avatar").html(entity);
+                    }
+                }
+            }).call('{% url 'account_user_avatar' account.id %}');
+            window.location.hash = "avatar";
+        });
+        $("#tab-btn-wechat").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#wechat").html(entity);
+                    }
+                }
+            }).call('{% url 'account_user_wechat' account.id %}');
+            window.location.hash = "wechat";
+        });
+        {% endif %}
+        //Default Setting
+        var hash = window.location.hash.replace("#", "");
+        if(hash==undefined || hash.trim() == "") {
+            hash = "home";
+            window.location.hash = hash;
+        }
+        $("#tab-btn-" + hash).tab("show");
+        var hook = false;
+        function do_vaild_email() {
+            if(hook) return;
+            hook = true;
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    hook = false;
+                    if (flag) {
+                        $.AlertBox({
+                            title: "操作成功",
+                            body: entity.msg,
+                            color: "success"
+                        }).show();
+                    } else {
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "操作失败",
+                            callback:function () {
+                                if(entity.action == "redirect") {
+                                    window.location.hash = "setting";
+                                    window.location.reload();
+                                }
+                            }
+                        }).show();
+                    }
+                }
+            }).call('{% url 'account_email_vaild' account.id %}');
+        }
+    </script>
+{% endblock %}

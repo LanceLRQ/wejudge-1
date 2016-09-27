@@ -1,0 +1,59 @@
+{% load full_time %}
+<form action="{% if course != None %}{% url 'education_mgr_save_modify_course' course.id %}{% else %}{% url 'education_mgr_save_new_course' %}{% endif %}" method="post" id="course_editor_form">
+    {% if user_session.user_role != 99 %}
+    课程归属学期：{{ web_config.year }}-{{ web_config.year|add:1 }}年度，第{{ web_config.term }}学期
+    <hr>
+    {% else %}
+    <div class="dropdown">
+        <button class="btn btn-primary btn-block dropdown-toggle"  style="border: 0px; border-radius: 0px;" type="button" data-toggle="dropdown">
+            点击切换学期 (<span id="view_dw_title">{{ course.year | default:web_config.year  }} - {{ course.year | default:web_config.year | add:1 }}学年，第{{ course.term | default:web_config.term }}学期</span>)
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+            {% for item in year_terms %}
+            <li role="presentation">
+                <a role="menuitem" href="javascript:void(0)" onclick="chooseYearTerm({{ item.year }}, {{ item.term }})">
+                    {{ item.year }} - {{ item.year | add:1 }}学年，第{{ item.term }}学期
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div><br />
+    <input type="hidden" name="year" id="ipt_year" value="{{ course.year | default:web_config.year }}">
+    <input type="hidden" name="term" id="ipt_term" value="{{ course.term | default:web_config.term }}">
+    {% endif %}
+    {% if user_session.user_role == 99 %}
+    <div class="input-group">
+        <div class="input-group-addon">归属教师</div>
+        <select name="teacher" class="form-control">
+            {% for teacher in teachers %}
+            <option value="{{ teacher.id }}"{% if course.teacher.id == teacher.id %}selected{% endif %}>{{ teacher.realname }}</option>
+            {% endfor %}
+        </select>
+    </div><br/>
+    {% endif %}
+    <div class="input-group">
+        <div class="input-group-addon">学院</div>
+        <select name="department" class="form-control">
+            {% for item in departments %}
+            <option value="{{ item.id }}"{% if course.department.id == item.id %}selected{% endif %}>{{ item.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br>
+    <div class="input-group">
+        <div class="input-group-addon">课程名称</div>
+        <input type="text" class="form-control" name="name" value="{{ course.name }}">
+    </div>
+    {% if course == None %}
+        <hr>
+        <span class="glyphicon glyphicon-info-sign"></span>为了保证数据的稳定性和完整性，课程暂时不支持删除，请慎重创建课程。
+    {% endif %}
+</form>
+<script type="text/javascript">
+    var chooseYearTerm = function (year, term) {
+        $("#view_dw_title").text(year + " - "+(year+1)+"学年，第"+term+"学期");
+        $("#ipt_year").val(year);
+        $("#ipt_term").val(term);
+    }
+</script>

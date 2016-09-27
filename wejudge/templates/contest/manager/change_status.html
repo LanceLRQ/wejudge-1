@@ -1,0 +1,16 @@
+<form id="change_status_form" method="post" action="{% url 'contest_mgr_save_status_change' contest.id status.id %}">
+    <div class="input-group">
+        <div class="input-group-addon">裁判结果</div>
+         <select class="form-control" name="flag" value="{{ status.flag }}">
+            <option value="0" {% if status.flag == 0 %}selected{% endif %}>评测通过(AC)</option>
+            <option value="1" {% if status.flag == 1 %}selected{% endif %}>格式错误(PE)</option>
+            <option value="2" {% if status.flag == 2 %}selected{% endif %}>超过时间限制(TLE)</option>
+            <option value="3" {% if status.flag == 3 %}selected{% endif %}>超过内存限制(MLE)</option>
+            <option value="4" {% if status.flag == 4 %}selected{% endif %}>答案错误(WA)</option>
+            <option value="5" {% if status.flag == 5 %}selected{% endif %}>运行时错误(RE)</option>
+            <option value="6" {% if status.flag == 6 %}selected{% endif %}>输出内容超限(OLE)</option>
+            <option value="7" {% if status.flag == 7 %}selected{% endif %}>编译失败(CE)</option>
+            <option value="8" {% if status.flag == 8 %}selected{% endif %}>系统错误(SE)</option>
+        </select>
+    </div>
+</form>

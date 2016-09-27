@@ -1,0 +1,56 @@
+{% extends "cpanel/base.html" %}
+{% block cpanel_page_title %}网站账号导入{% endblock %}
+{% block cpanel_page_body %}
+<form action="" method="post" id="form_account_import">
+    <div class="input-group">
+        <div class="input-group-addon">信息 <a href="/resource/xls_template/account_import_infos.xls">模板</a></div>
+        <input type="file" name="upload_xls" id="upload_xls" class="form-control">
+    </div><br />
+    <div class="input-group">
+        <span class="input-group-addon">用户类型</span>
+        <select class="form-control" name="role" value="1" id="role">
+            <option value="0">普通用户</option>
+            <option value="1" selected>学生</option>
+            <option value="2">教师</option>
+            <option value="99">网站管理员</option>
+        </select>
+    </div><br />
+    <button type="submit" class="btn btn-success" id="form_account_import_btn">上传并导入</button>
+    <div id="result_box" style="display: none">
+        <br />
+        <h4>处理结果</h4>
+        <hr>
+        <div id="result_container">
+
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block cpanel_page_script %}
+    <script type="text/javascript">
+    $(function () {
+       $("#form_account_import").submit(function() {
+            $("#form_account_import_btn").prop('disabled', true);
+            var fd = new FormData();
+            fd.append("upload_xls", document.getElementById('upload_xls').files[0]);
+            fd.append("role", $('#role').val());
+            $.GRestP({
+                url: '{% url 'cpanel_accountmgr_import_upload' %}',
+                formdata: fd,
+                responseType: 'text',
+                success:function(data){
+                    $("#form_account_import_btn").prop('disabled', false);
+                    $("#result_container").html(data);
+                    $("#result_box").show();
+                },
+                error: function () {
+                    $("#form_account_import_btn").prop('disabled', false);
+                    $("#result_container").html("<div class='alert alert-danger'>请求时发生错误，请重试</div>")
+                    $("#result_box").show();
+                }
+            }).upload();
+            return false;
+        });
+    });
+    </script>
+{% endblock %}

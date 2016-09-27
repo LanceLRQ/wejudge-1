@@ -1,0 +1,28 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+{% endblock %}
+{% block page_body %}
+<div id="head">
+    <div id="head-backphoto">
+        <img src="/static/guide/students/img/workHead.png" width="100%" height="100%">
+    </div>
+</div>
+<div id="main">
+    <div id="mainPhoto"></div>
+    <div >
+        <img src="/static/guide/students/img/作业题目.png" width="100%" height="100%" style="-webkit-filter: blur(5px);filter:blur(5px);">
+    </div>
+    <div><img style="position: absolute;top: 140px;left: 345px;width:900px;height:220px;" src="/static/guide/students/img/题目.png"></div>
+    <div id="intro"style="position:absolute;left:880px;top:300px; display: none">
+        <img src="/static/guide/students/img/便签副本.png">
+        <p id="word" style="top:100px;display: none" class="introduce">
+            方框右侧显示了该题目的难度<br>
+            全站正确率与你本人的正确率<br>
+            星星越多,难度越大<br>
+        </p>
+        <a  href="{% url 'helper_guide_student_viewer' 14 %}"><img id="next" src="/static/guide/students/img/next.png" style="position: absolute;left: 240px;top:210px;cursor: hand"></a>
+    </div>
+</div>
+{% endblock %}

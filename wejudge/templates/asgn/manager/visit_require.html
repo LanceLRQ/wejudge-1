@@ -1,0 +1,88 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% block asgn_page_title%}调课管理{% endblock %}
+{% block asgn_page_body %}
+<h3>调课管理</h3>
+<hr>
+<form action="{% url 'asgn_mgr_save_mgr_visit_require' asgn.id %}" method="post" id="visit_require_form">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="select-all"></th>
+                <th>姓名</th>
+                <th>原排课</th>
+                <th>目标排课</th>
+                <th>申请时间</th>
+                <th>通过情况</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for req in require_list %}
+        <tr>
+            <td><input type="checkbox" name="rids" class="bm-checkbox" value="{{ req.id }}" {% if arr.id in available_list %}checked{% endif %}></td>
+            <td>{{ req.author.realname }}</td>
+            <td>{{ req.source_arrangement.toString }}</td>
+            <td>{{ req.arrangement.toString }}</td>
+            <td>{{ req.create_time | full_time }}</td>
+            <td>
+                {% if req.flag == 1 %}
+                    <span class="label label-success">已通过</span>
+                {% elif req.flag == 0 %}
+                    <span class="label label-danger">不通过</span>
+                {% else %}
+                    <span class="label label-warning">待处理</span>
+                {% endif %}</td>
+        </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" align="center">暂无调课申请</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="input-group">
+        <div class="input-group-addon">请选择操作</div>
+        <select name="action" id="" class="form-control">
+            <option value="1">通过</option>
+            <option value="0">不通过</option>
+            <option value="-2">删除</option>
+        </select>
+    </div><br />
+    <button class="btn btn-success">执行</button>
+</form>
+{% endblock %}
+{% block asgn_page_script %}
+<script type="text/javascript">
+$(function () {
+    var $bm_form = $("#visit_require_form");
+    $bm_form.find("#select-all").change(function () {
+        $bm_form.find(".bm-checkbox").prop("checked", $(this).prop("checked"));
+    });
+    $bm_form.submit(function() {
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if (flag) {
+                    $.AlertBox({
+                        title: "操作成功",
+                        body: "保存成功",
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                } else {
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "操作失败"
+                    }).show();
+                }
+            }
+        }).submit_form(this);
+        return false;
+    });
+});
+</script>
+{% endblock %}

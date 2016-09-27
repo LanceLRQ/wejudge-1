@@ -1,0 +1,40 @@
+{% load get_attr %}
+{% load load_json %}
+<div class="my-tab-container" align="center">
+    {% if account.wc_openid != None and account.wc_openid != '' %}
+        <h2>微信管理</h2>
+        <hr>
+        <div style="width: 240px; margin: 0 auto;">
+            <div class="thumbnail">
+                <img src="/resource/headimg/{{ account.headimg }}">
+                <div class="caption">
+                <h3>{{ account.wc_user_info | load_json | get_attr:"nickname" }}</h3>
+                <p>{{ account.wc_user_info | load_json | get_attr:"country" }},
+                    {{ account.wc_user_info | load_json | get_attr:"province" }},
+                    {{ account.wc_user_info | load_json | get_attr:"city" }}</p>
+                <p>
+                    <a href="{% url 'account_user_wechat_refresh_headimg' account.id %}" class="btn btn-success">刷新头像</a>&nbsp;
+                    <a href="{% url 'account_user_wechat_unbind' account.id %}" class="btn btn-default" role="button">解除绑定</a>
+                </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <h2>检测到您的账户没有绑定微信，请先绑定</h2>
+        <hr>
+        <script type="text/javascript">
+        jQuery.getScript("https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js",  function (response,status) {
+            var obj = new WxLogin({
+                id:"login_container",
+                appid: "wx667fa851b07ee0ae",
+                scope: "snsapi_login",
+                redirect_uri: "https://oj.bnuz.edu.cn/wechat/api/oauth2/callback",
+                state: "bind",
+                style: "black",
+                href: ""
+            });
+        });
+        </script>
+        <div id="login_container"></div>
+    {% endif %}
+</div>

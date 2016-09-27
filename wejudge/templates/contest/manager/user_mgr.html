@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% block page_title%}{{ contest.title }} - {% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {% if user_session.user_id == 'acm' %}
+        <h4>比赛内部账户管理(ACM账户专用）</h4>
+        <hr>
+        <form id="xls_upload_form" class="form-inline" action="{% url 'contest_mgr_read_xls_to_change_team_user_info' contest.id %}" method="post" enctype="multipart/form-data">
+            <div class="input-group">
+                <div class="input-group-addon">上传xls文件</div>
+                <input type="file" name="upload_xls" class="form-control" id="upload_xls" />
+                <div class="input-group-btn">
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-success">上传xls文件并应用更改</button>
+                        <a href="/resource/xls_template/contest_acm_team_user_template.xls" class="btn btn-primary">下载用户设定excel模板</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr>
+        <table class="table table-striped table-bordered">
+            <thead>
+            <tr>
+                <td>ID</td>
+                <td>队名</td>
+                <td>团队成员</td>
+                <td>管理</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{% if user.sex == 0 %}<span style="color:red;">{{ user.nickname }}</span>{% else %}{{ user.nickname }}{% endif %}</td>
+                <td>{{ user.realname }}</td>
+                <td>
+                    <a href="javascript:void(0)" class="label label-primary btn-reset-pwd" data-id="{{ user.id }}">重设</a>
+                    {% if user.locked %}
+                    <a href="javascript:void(0)" class="label label-success btn-unlock" data-id="{{ user.id }}">解锁</a>
+                    {% else %}
+                    <a href="javascript:void(0)" class="label label-danger btn-lock" data-id="{{ user.id }}" title="禁止登录，并且退出当前登录状态">锁定</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">暂时没有给ACM协会分配内部账户</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+    $(".btn-lock").click(function() {
+        var user_id = $(this).attr("data-id");
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if (flag) {
+                    $.AlertBox({
+                        title: "操作成功",
+                        body: "成功锁定该账号",
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                } else {
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "操作失败"
+                    }).show();
+                }
+            }
+        }).call('{% url 'contest_mgr_lock_contest_user' contest.id %}?user_id=' + user_id + "&action=lock");
+    });
+    $(".btn-unlock").click(function() {
+        var user_id = $(this).attr("data-id");
+        $.GRestP({
+            responseType: 'json',
+            callback: function (flag, entity) {
+                if (flag) {
+                    $.AlertBox({
+                        title: "操作成功",
+                        body: "成功解锁该账号",
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                } else {
+                    $.AlertBox({
+                        body: entity.msg,
+                        color: "danger",
+                        title: "操作失败"
+                    }).show();
+                }
+            }
+        }).call('{% url 'contest_mgr_lock_contest_user' contest.id %}?user_id=' + user_id + "&action=unlock");
+    });
+    $("#xls_upload_form").submit(function () {
+        var fd = new FormData();
+        fd.append("upload_xls", document.getElementById('upload_xls').files[0]);
+        $.GRestP({
+            url: '{% url 'contest_mgr_read_xls_to_change_team_user_info' contest.id %}',
+            formdata: fd,
+            responseType: 'json',
+            success:function(data){
+                if(data.flag){
+                    $.AlertBox({
+                        title: '处理成功',
+                        body: '处理成功',
+                        color: "success",
+                        callback: function () {
+                            window.location.reload();
+                        }
+                    }).show();
+                }else{
+                    $.AlertBox({
+                        color: "danger",
+                        title: '处理失败',
+                        body: data.msg
+                    }).show();
+                }
+            },
+            error: function () {
+                $.AlertBox({
+                    color: "danger",
+                    title: '错误',
+                    body: '请求时发生错误'
+                }).show();
+            }
+        }).upload();
+        return false;
+    });
+    $(".btn-reset-pwd").click(function () {
+        var id = $(this).attr('data-id');
+        var reset_pwd_context= '<form class="form" method="post" id="reset-pwd-form"><input type="hidden" name="user_id" value="$1"/><div class="input-group"><div class="input-group-addon">新密码</div><input type="" class="form-control" name="pwd" value="" placeholder="留空自动设置为123456"/></div></form>';
+        $.ModalBox({
+            mode: 'html',
+            html: reset_pwd_context.replace("$1", id),
+            size: "small",
+            title: '重置密码',
+            loaded: function () {
+                $("#reset-pwd-form").submit(function () {
+                    $.GRestP({
+                       responseType: 'json',
+                        callback: function (flag, entity) {
+                            if(flag){
+                                $.AlertBox({
+                                    body: "密码重置成功",
+                                    color: "success",
+                                    title: "操作成功",
+                                    callback: function () {
+                                        $.ModalBox({}).hide();
+                                    }
+                                }).show();
+                            }else{
+                                $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                            }
+                        }
+                    }).submit_form(this, "{% url 'contest_mgr_reset_user_passwd' contest.id %}");
+                    return false;
+                });
+            },
+            default_btn_action: function () {
+                $("#reset-pwd-form").submit();
+            }
+
+        }).show();
+    });
+    </script>
+{% endblock %}

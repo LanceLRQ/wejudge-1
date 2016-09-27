@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}全站排行榜{% endblock %}
+{% block page_head %}
+{% endblock %}
+{% block page_body %}
+    <div class="header_container">
+        <h1>全站排行榜</h1>
+    </div>
+    <div class="page_container">
+        {{ pager_data }}
+        <table class="table table-striped table-bordered">
+            <thead>
+            <tr>
+                <th>全站排名</th>
+                <th>用户ID</th>
+                <th>昵称 (真实姓名)</th>
+                <th>解决题目</th>
+                <th>正确率 (通过数/提交数/错误数)</th>
+                <th>个人简介</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for user in rank_list %}
+                <tr>
+                    <td>{{ start_index | add:forloop.counter }}</td>
+                    <td>{{ user.id }}</td>
+                    <td><a href="{% url 'account_space' user.id %}" target="_blank">{{ user.nickname }} ({{ user.realname }})</a></td>
+                    <td>{{ user.solved }}</td>
+                    <td>{{ user.ratio | default:0 | floatformat:2  }}% ({{ user.accepted }}/{{ user.submissions }}/{{ user.wrong }})</td>
+                    <td>{{ user.motto | default:"" | truncatechars:20 }}</td>
+                </tr>
+                {% empty %}
+                    <tr><td colspan="6">暂无可用排名用户</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    <span class="glyphicon glyphicon-info-sign"></span>&nbsp;目前有{{ userCount }}名用户被允许参与此次排名，排名按照解决问题次数较多，错误提交较少以及评测通过率较高的用户进行降序排名。<br />
+    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;若不同用户存在数据相同的巧合，排名显示上可能有先后，恕不做处理，敬请谅解。<br>
+    <span class="glyphicon glyphicon-warning-sign"></span>&nbsp;请勿试图通过多次提交正确代码来拉高正确率，优先以错误提交数量为排序依据<br>
+    {{ pager_data }}
+    </div>
+{% endblock %}
+{% block page_script %}
+
+{% endblock %}

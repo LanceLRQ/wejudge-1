@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block page_title %}登录 - {% endblock %}
+{% block page_head %}
+    <style type="text/css">
+    .page_body{
+        background: transparent !important;
+    }
+    .footer-diy{
+        display: none;
+    }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div id="main_login_panel" style="width: 80%; height:300px; max-width:400px; margin: 100px auto 100px auto; padding: 5px;">
+    <form id="login-form" action="{% url 'account_api_check_login' %}" method="post">
+        <blockquote style="padding:0 20px;"><span style="color: #fff; font-size:2em;">用户登录</span></blockquote><br />
+        <div class="input-group input-group-lg">
+            <div class="input-group-addon">账号</div>
+            <input type="text" class="form-control" id="loginform-user" name="user">
+        </div><br />
+        <div class="input-group input-group-lg">
+            <div class="input-group-addon">密码</div>
+            <input type="password" class="form-control" id="loginform-pwd" name="password">
+        </div><br />
+        <div class="input-group">
+            <div class="input-group-addon" style="text-align: left;"><label><input  type="checkbox" name="rememberme" value="1">&nbsp;记住我（14天内有效）</label></div>
+            <div class="input-group-addon" style="text-align: right;"><a href="javascript:alert('开发中')" target="_blank">忘记密码?</a></div>
+        </div><br />
+        <div id="form-btns">
+            <button type="submit" class="btn btn-lg btn-success btn-block">登录</button><br />
+            <button type="button" class="btn btn-lg btn-primary btn-block" onclick="window.location.href='{% url 'account_register' %}'">还没有账号？注册一个</button><br />
+            <div align="center">
+                <a id="btn_call_wx_login" href="javascript:void(0);"><img src="/static/images/icon32_wx_button.png"></a>
+            </div>
+        </div>
+        <div id="form-psbar" style="display: none;">
+            <div class="progress">
+                <div class="progress-bar progress-bar-success progress-bar-striped active" style="width: 100%;"></div>
+            </div>
+        </div>
+        <input type="hidden" name="referer" value="{{ referer }}">
+    </form>
+</div>
+<div id="wx_login_panel" align="center" style="width: 80%; height:300px; max-width:400px; margin: 100px auto 100px auto; padding: 5px; display: none;">
+    <div id="wx_login_container"></div>
+    <a href="javascript:void(0);" class="btn btn-primary" onclick="$('#main_login_panel').show();$('#wx_login_panel').hide();">返回普通登录</a>
+</div>
+
+{% endblock %}
+{% block page_script %}
+    <script type="text/javascript">
+    $(function(){
+        WeJudge.login_form_bind("#login-form");
+        $("#btn_call_wx_login").click(function () {
+            $("#main_login_panel").hide();
+            $("#wx_login_panel").show();
+            jQuery.getScript("https://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js",  function (response,status) {
+                var obj = new WxLogin({
+                    id:"wx_login_container",
+                    appid: "wx667fa851b07ee0ae",
+                    scope: "snsapi_login",
+                    redirect_uri: "https://oj.bnuz.edu.cn/wechat/api/oauth2/callback",
+                    state: "login",
+                    style: "white",
+                    href: ""
+                });
+            });
+        });
+    });
+    </script>
+{% endblock %}

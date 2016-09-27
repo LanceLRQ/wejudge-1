@@ -1,0 +1,21 @@
+<form id="asgn_problem_setting_form" method="post" action="{% url 'asgn_mgr_save_asgn_problem_setting' asgn.id asgn_problem.id %}">
+    <div class="input-group">
+        <div class="input-group-addon">题目分值</div>
+        <input type="text" name="score" class="form-control" value="{{ asgn_problem.score }}">
+    </div>
+    <br>
+    语言支持
+    <hr>
+    {% if 'inherit' not in asgn_problem.lang %}
+    <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in asgn_problem.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in asgn_problem.lang %}checked{% endif %}> C++&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="java" {% if 'java' in asgn_problem.lang %}checked{% endif %}> Java
+    {% else %}
+    <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in asgn.lang or 'all' in asgn.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in asgn.lang or 'all' in asgn.lang  %}checked{% endif %}> C++&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="java" {% if 'java' in asgn.lang or 'all' in asgn.lang  %}checked{% endif %}> Java
+    {% endif %}
+    <hr>
+    <input type="checkbox" name="require" value="1" {% if asgn_problem.require %}checked{% endif %}> 必做题
+    <br>
+</form>

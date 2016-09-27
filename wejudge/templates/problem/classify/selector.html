@@ -1,0 +1,23 @@
+<div id="problem_classify_selector"></div>
+<input type="hidden" id="problem_classify_selector_id" value="0">
+<script type="text/javascript">
+    $(function () {
+        $("#problem_classify_selector").on('changed.jstree', function (e, data) {
+            if (data.selected.length>0){
+                $("#problem_classify_selector_id").val(data.instance.get_node(data.selected[0]).id);
+            }
+        }).jstree({
+            'core': {
+                "multiple" : false,
+                'data': {
+                    "url": function (node) {
+                        return node.id==="#" ? '{% url 'problem_get_classify_list' classify_id %}' : '{% url 'problem_get_classify_list' %}';
+                    },
+                    "data": function (node) {
+                        return { "id" : node.id };
+                    }
+                }
+            }
+        });
+    });
+</script>

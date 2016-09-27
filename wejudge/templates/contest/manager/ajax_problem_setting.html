@@ -1,0 +1,19 @@
+<form id="contest_problem_setting_form" method="post" action="{% url 'contest_mgr_save_problem_setting' contest.id cproblem.problem.id %}">
+    评测风格
+    <hr>
+    <lable title="自动评测并且不可以修改评测结果"><input type="radio" name="judge_style" value="0" {% if cproblem.judge_style == 0 %}checked{% endif %}> 自动评测</lable>&nbsp;
+    <lable title="自动评测但可以修改评测结果"><input type="radio" name="judge_style" value="1" {% if cproblem.judge_style == 1 %}checked{% endif %}> 半自动评测</lable>
+    <!--lable><input type="radio" name="judge_style" value="2"> 手动评测</lable-->
+    <hr>
+    语言支持
+    <hr>
+    {% if 'inherit' not in cproblem.lang %}
+    <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in cproblem.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in cproblem.lang %}checked{% endif %}> C++&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="java" {% if 'java' in cproblem.lang %}checked{% endif %}> Java
+    {% else %}
+    <input type="checkbox" name="lang" value="gcc" {% if 'gcc' in contest.lang or 'all' in contest.lang %}checked{% endif %}> C语言&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="gcc-cpp" {% if 'gcc-cpp' in contest.lang  or 'all' in contest.lang %}checked{% endif %}> C++&nbsp;&nbsp;
+    <input type="checkbox" name="lang" value="java" {% if 'java' in contest.lang or 'all' in contest.lang  %}checked{% endif %}> Java
+    {% endif %}
+</form>

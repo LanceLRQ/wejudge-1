@@ -1,0 +1,144 @@
+{% load full_time %}
+<div class="my-tab-container">
+{% if account.id == user_session.user_id and not account.email_validated and account.email != None and account.email != '' %}
+    <div class="alert alert-danger">注意：您的邮箱未通过验证，将无法使用找回密码功能。保障账号安全，请<a href="javascript:void(0)" onclick="do_vaild_email();">立即验证邮箱</a></div>
+{% endif %}
+    <div class="row">
+        <div class="col-sm-3">
+            <div align="center">
+                <img src="{% if account.headimg == None or account.headimg == '' %}/static/images/headimg_placeholder.png{% else %}/resource/headimg/{{ account.headimg }}{% endif %}" width="180" height="180" style="border: 1px solid #ccc; border-radius: 50%;">
+            </div><br />
+            <div class="progress" title="账号等级：{{ account.level }}&#13;当前积分：{{ account.point_total }}&#13;达到下一级需要：{{ account.next_level_point }}">
+                <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: 4em; width:{{ account.next_level_ratio }}%;">
+
+                </div>
+            </div>
+            <div align="center">
+                {{ account.point_total }} / {{ account.next_level_point }}
+            </div>
+            <div style="line-height:30px;">
+                用户名：{{ account.id }}<br />
+                昵称：{{ account.nickname }}<br />
+                真实姓名：{{ account.realname }}<br />
+                账号等级：{{ account.level }}<br />
+                账号创建时间：{{ account.create_time | full_time }}<br />
+                最后登录时间：{{ account.last_login_time | full_time }}
+
+            </div>
+        </div>
+        <div class="col-sm-9">
+            <table width="80%" style="margin: 0 auto;">
+                <tr>
+                    <td width="20%" align="center"><h1>{{ account.visited }}<br><small>访问题目</small></h1></td>
+                    <td width="20%" align="center"><h1>{{ account.solved }}<br><small>解决题目</small></h1></td>
+                    <td width="20%" align="center"><h1>{{ account.submissions }}<br><small>提交次数</small></h1></td>
+                    <td width="20%" align="center"><h1>{{ account.accepted }}<br><small>通过次数</small></h1></td>
+                </tr>
+            </table>
+            <hr>
+            {% if account.role == 1 or account.role == 2 %}
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">待完成的作业</h4>
+                        </div>
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>作业名称</th>
+                                    <th>所属课程</th>
+                                    <th>发布时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for asgn in asgn_list %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><a href="{% url 'asgn_problem_list' asgn.id %}">{{ asgn.name }}</a></td>
+                                    <td>{{ asgn.course.name }}</td>
+                                    <td>{{ asgn.create_time | full_time }}</td>
+                                </tr>
+                                {% empty %}
+                                    <tr>
+                                    <td colspan="4">很棒，没有作业哦！</td>
+                                    </tr>
+                                {% endfor  %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            {% endif %}
+            <div style="line-height: 50px;">
+            {% for pv in problem_visiteds %}
+            {% if pv.accepted > 0 %}
+            <a href="{% url "problem_judge_status" %}?author_id={{ account.id }}&problem_id={{ pv.problem.id }}" class="btn btn-success" type="button">{{ pv.problem.id }}.{{ pv.problem.title }}&nbsp;<span class="badge">{{ pv.accepted }}/{{ pv.submissions }}</span></a>&nbsp;
+            {% else %}
+            <a href="{% url "problem_judge_status" %}?author_id={{ account.id }}&problem_id={{ pv.problem.id }}"  class="btn btn-warning" type="button">{{ pv.problem.id }}.{{ pv.problem.title }}&nbsp;<span class="badge">{{ pv.accepted }}/{{ pv.submissions }}</span></a>&nbsp;
+            {% endif %}
+            {% endfor %}
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="media">
+                        <a class="media-left" href="#">
+                            <img src="/static/images/devcpp.jpg" alt="Dev C++"  width="48" height="48" border="0">
+                        </a>
+                        <div class="media-body">
+                            <a class="h4 media-heading" href="/resource/download/env/DevCPP5_11-WeJudge.exe">Dev-C++ 5.11 WeJudge优化版</a><br />
+                            点击下载WeJudge官方指定C/C++语言开发工具<br /><strong><a href="/resource/download/env/how_to_use_dev_cpp.ppt">[点击这里获取使用帮助PPT文档]</a></strong><br />
+                            某些杀毒软件可能会报毒，请放心，本程序绝对安全。请信任此程序或者是添加到白名单，以便能够正确安装。<br/>
+                            MD5校验：3b4395ab5c4491fcb8922b5134cc4676
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="media">
+                        <a class="media-left" href="#">
+                            <img src="/static/images/coderunner.jpg" alt="Dev C++"  width="48" height="48" border="0">
+                        </a>
+                        <div class="media-body">
+                            <a class="h4 media-heading" href="/resource/download/env/CodeRunner.zip">CodeRunner 2.11 破解版</a><br />
+                            使用苹果电脑，操作系统为 MacOS或OSX 的同学请下载这个IDE，内附带pptx格式的操作说明文档<br />
+                            MD5校验：de44d1f968f18d681ca4c2d8c6bffe9e
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>
+{% if require_change_pwd %}
+<script type="text/javascript">
+    $.ConfirmBox({
+        title: "弱口令提示",
+        body: "您的账户口令太弱，请立刻更改密码！<br /><strong>是否立即修改？</strong>",
+        color: 'warning',
+        callback: function (flag) {
+            if (flag) {
+                window.location.hash = "setting";
+                window.location.reload();
+            }else{
+                {% if user_session.user_role == 1 %}
+                $.AlertBox({
+                    title: '禁止操作',
+                    body: '宝宝，你怎么这么不乖？！你以为点了否就不用修改了？太天真。乖，快去改。不改的话，弹窗弹死你~',
+                    color: "danger",
+                    callback: function () {
+                        window.location.hash = "setting";
+                        window.location.reload();
+                    }
+                }).show();
+                {% else %}
+                window.location.hash = "setting";
+                window.location.reload();
+                {% endif %}
+            }
+        }
+    }).show();
+</script>
+{% endif%}

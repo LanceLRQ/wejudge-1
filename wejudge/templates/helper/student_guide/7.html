@@ -1,0 +1,40 @@
+{% extends 'helper/student_guide/base.html' %}
+{% block page_header %}
+    <link rel="stylesheet" href="/static/guide/students/anim.css">
+    <script type="text/javascript" src="/static/guide/students/animation.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+        setTimeout(function () {
+            $(pointer).show();
+        },2500);
+        setTimeout(function () {
+            location.href="{% url 'helper_guide_student_viewer' 8 %}";
+        },5000)
+    });
+</script>
+{% endblock %}
+{% block page_body %}
+    <div id="head">
+        <div id="head-backphoto">
+            <img src="/static/guide/students/img/head.png" width="100%" height="100%">
+        </div>
+        <div id="square" style="position: absolute;left:200px;top:-12px;">
+        </div>
+
+    </div>
+    <div id="main">
+        <div id="mainPhoto"></div>
+        <div >
+            <img src="/static/guide/students/img/main.png" width="100%" height="100%" style="filter:blur(5px);-webkit-filter: blur(5px);">
+        </div>
+        <div id="pointer" style="position: absolute;left: 330px;top: 20px;display: none"><img src="/static/guide/students/img/箭头图案.png"></div>
+        <div id="intro"style="position:absolute;left:480px;top:30px;">
+            <img src="/static/guide/students/img/便签.png">
+            <p id="word" class="introduce" style="display: none">
+                下面,就让我们更加详细的了<br>
+                解作业系统,并完成我们的第<br>
+                一次oj作业吧
+            </p>
+        </div>
+    </div>
+{% endblock %}

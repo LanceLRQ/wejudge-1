@@ -1,0 +1,188 @@
+<script type="text/javascript">
+    $(function () {
+        {% if course != None %}
+        $("#tab-btn-home").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#home").html(entity);
+                    }
+                }
+            }).call('{% url 'education_course_info' course.id %}');
+            window.location.hash = "home";
+        });
+        $("#tab-btn-students").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#students").html(entity);
+                    }
+                }
+            }).call('{% url 'education_mgr_course_student' course.id %}');
+            window.location.hash = "students";
+        });
+        $("#tab-btn-assistants").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#assistants").html(entity);
+                    }
+                }
+            }).call('{% url 'education_mgr_course_assistants' course.id %}');
+            window.location.hash = "assistants";
+        });
+        $("#tab-btn-arrangement").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#arrangement").html(entity);
+                    }
+                }
+            }).call('{% url 'education_mgr_course_arrangement' course.id %}');
+            window.location.hash = "arrangement";
+        });
+        $("#tab-btn-message").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#message").html(entity);
+                    }
+                }
+            }).call('{% url 'education_course_message' course.id %}');
+            window.location.hash = "message";
+        });
+        $("#tab-btn-resource").on("shown.bs.tab", function () {
+            $.GRestP({
+                callback: function (flag, entity) {
+                    if(flag){
+                        $("#resource").html(entity);
+                    }
+                }
+            }).call('{% url 'education_resource_repositories' course.id %}');
+            window.location.hash = "resource";
+        });
+        $("#btn-delete-course").click(function () {
+            $.ConfirmBox({
+                title: "删除课程",
+                color: "danger",
+                body: "您确定要删除这个课程吗？<br /><br />如果您在此课程创建过作业，那么此操作将无法进行！",
+                callback: function (flag) {
+                    if(flag){
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "操作成功",
+                                        body: "课程信息删除成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.href = '{% url 'education_index' %}';
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "操作失败"
+                                    }).show();
+                                }
+                            }
+                        }).call('{% url 'education_mgr_delete_course' course.id %}');
+                    }
+                }
+            }).show();
+        });
+        {% endif %}
+        $("#btn-course-choosing").click(function () {
+            $.ModalBox({
+                'title': '学生选课',
+                'mode': 'url',
+                'default_btn_title': '关闭',
+                'url': '{% url 'education_course_choosing' %}'
+            }).show();
+        });
+        $("#btn-new-course").click(function () {
+            $.ModalBox({
+                title: "创建课程",
+                url: "{% url 'education_mgr_new_course' %}",
+                mode:　"url",
+                default_btn_title: "保存",
+                loaded: function () {
+                    $("#course_editor_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "保存成功",
+                                        body: "新课程发布成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.href = '{% url 'education_index' 0 %}'.replace('course/0', 'course/' + entity.data);
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "保存失败"
+                                    }).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#course_editor_form").submit();
+                }
+            }).show();
+        });
+        $("#btn-modify-course").click(function () {
+            var id = $(this).attr("data-id");
+            $.ModalBox({
+                title: "修改课程",
+                url: "{% url 'education_mgr_modify_course' 0 %}".replace("course/0", "course/" + id),
+                mode:　"url",
+                default_btn_title: "保存",
+                loaded: function () {
+                    $("#course_editor_form").submit(function () {
+                        $.GRestP({
+                            responseType: 'json',
+                            callback: function (flag, entity) {
+                                if(flag){
+                                    $.AlertBox({
+                                        title: "保存成功",
+                                        body: "课程信息保存成功！",
+                                        color: "success",
+                                        callback: function () {
+                                            window.location.href = '{% url 'education_index' 0 %}'.replace('course/0', 'course/' + entity.data);
+                                        }
+                                    }).show();
+                                }else{
+                                    $.AlertBox({
+                                        body: entity.msg,
+                                        color: "danger",
+                                        title: "保存失败"
+                                    }).show();
+                                }
+                            }
+                        }).submit_form(this);
+                        return false;
+                    });
+                },
+                default_btn_action: function () {
+                    $("#course_editor_form").submit();
+                }
+            }).show();
+        });
+        //Default Setting
+        var hash = window.location.hash.replace("#", "");
+        if(hash==undefined || hash.trim() == "") {
+            hash = "home";
+            window.location.hash = hash;
+        }
+        $("#tab-btn-" + hash).tab("show");
+    });
+</script>

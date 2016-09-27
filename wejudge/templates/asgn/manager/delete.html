@@ -1,0 +1,50 @@
+{% extends "asgn/base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% block asgn_page_title%}删除作业{% endblock %}
+{% block asgn_page_body %}
+    <!--本来啊，我是不打算做这个功能的，没啥，一个字，麻烦。小红鱼说，不行嘛，宝宝要玩，宝宝就是喜欢没事做添加一些作业再删了-->
+    <!--好咯宝宝你最大你说了算...怎么会有一个这么爱玩的老师-->
+    <form id="form-delete-asgn" action="{% url 'mgr_asgn_delete' asgn.id %}" method="post">
+        <div class="alert alert-danger">
+            <h4><strong>警告：</strong>您应该很清楚您的操作即将带来的后果。</h4>
+            <ol>
+                <li>作业信息将会被永久删除，无法恢复。</li>
+                <li>所有与该作业关联的做题信息、实验报告、批改信息等都将要被删除。</li>
+                <li>题目、评测记录、运行数据等存放于服务器文件系统的内容将不会被删除。</li>
+                <li>当前操作仅能由管理员或作业发布者执行。</li>
+            </ol>
+            <label><input type="checkbox" name="confrim" value="1" onchange="if($(this).prop('checked')){$('#btn-delete-action').removeClass('disabled');}">&nbsp;我愿意承担此操作带来的风险</label>
+            <hr />
+            <button type="submit" id="btn-delete-action" class="btn btn-danger disabled">删除作业</button>
+        </div>
+    </form>
+{% endblock %}
+{% block asgn_page_script %}
+    <script type="text/javascript">
+        $(function () {
+           $("#form-delete-asgn").submit(function () {
+                $("#btn-delete-action").prop('disable', false);
+                $.GRestP({
+                    responseType: 'json',
+                    callback: function (flag, entity) {
+                        $("#btn-delete-action").prop('disable', true);
+                        if(flag){
+                            $.AlertBox({
+                                body: "当前作业已经成功删除",
+                                color: "success",
+                                title: "操作成功",
+                                callback: function () {
+                                    window.location.href = "{% url 'asgn_index' asgn.course.id %}";
+                                }
+                            }).show();
+                        }else{
+                            $.AlertBox({body: entity.msg, color: "danger", title: "操作失败"}).show();
+                        }
+                    }
+                }).submit_form(this);
+                return false;
+            });
+        });
+    </script>
+{% endblock %}

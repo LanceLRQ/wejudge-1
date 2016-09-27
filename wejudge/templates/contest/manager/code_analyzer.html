@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load full_time %}
+{% load get_attr %}
+{% load convert_percent %}
+{% load ranklist_firstac_sign %}
+{% block page_title %}代码查重 - {{ contest.title }} - {% endblock %}
+{% block page_head %}
+    <style type="text/css">
+    table > tbody > tr > td{
+        vertical-align: middle !important;
+    }
+    </style>
+{% endblock %}
+{% block page_body %}
+<div class="header_container">
+    <h1>{{ contest.title }} <small>{{ contest.start_time | full_time }} - {{ contest.end_time | full_time }}</small></h1>
+</div>
+<div id="reload_process" style="position: relative; height: 4px; width:0%; background:#f00;"></div>
+<div class="page_container">
+    {% include "contest/nav.html" %}
+    {{ pager }}
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>题目编号</th>
+                    <th>评测状态1</th>
+                    <th>参赛者1</th>
+                    <th>评测状态2</th>
+                    <th>参赛者2</th>
+                    <th>代码相似度（L-Ratio)</th>
+                    <th>查看源代码</th>
+                </tr>
+            </thead>
+            <tbody >
+                {% for item in list %}
+                    <tr>
+                        <td>{{ item.problem.id }}</td>
+                        <td><a href="{% url 'problem_judge_detail' item.status1.id %}" target="_blank">{{ item.status1.id }}</a></td>
+                        <td>{{ item.status1.author.id }}({{ item.status1.author.nickname }})</td>
+                        <td><a href="{% url 'problem_judge_detail' item.status2.id %}" target="_blank">{{ item.status2.id }}</a></td>
+                        <td>{{ item.status2.author.id }}({{ item.status2.author.nickname }})</td>
+                        <td>{{ item.levenshtein_similarity_ratio | convert_percent }}</td>
+                        <td><a target="_blank" href="{% url 'contest_mgr_code_compare' contest.id item.id %}" class="label label-success">查看</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">暂时没有查重信息</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ pager }}
+</div>
+
+{% endblock %}
+{% block page_script %}
+    {% if is_referee %}
+    <script type="text/javascript">
+    $(function () {
+        var i = 0;
+        var max = 240;
+        var $bar = $("#reload_process");
+        setInterval(function () {
+            $bar.animate({ "width": (((i+1) / max) * 100) + "%"}, 600);
+            i++;
+            if (i >= max){
+                window.location.reload();
+            }
+        }, 1000);
+    });
+    </script>
+    {% endif %}
+{% endblock %}

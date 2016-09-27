@@ -1,0 +1,28 @@
+<form class="form" method="get" action="" id="account_filter_form">
+    <div class="input-group">
+        <div class="input-group-addon">用户名(模糊查询)</div>
+        <input name="account_id" type="text" class="form-control" value="{{ account_id }}" placeholder=""/>
+        <div class="input-group-addon">
+            <select name="account_id_type" id="">
+                <option value="">学号/工号/ID</option>
+                <option value="[n]" {% if account_id_type == '[n]' %}selected{% endif %}>昵称</option>
+                <option value="[r]" {% if account_id_type == '[r]' %}selected{% endif %}>真实姓名</option>
+            </select>
+        </div>
+    </div><br>
+    <div class="input-group">
+        <div class="input-group-addon">角色</div>
+        <select class="form-control" name="account_role">
+            <option value="">全部</option>
+            <option value="0" {% if account_role == '0' %}selected{% endif %}>普通用户</option>
+            <option value="1" {% if account_role == '1' %}selected{% endif %}>学生用户</option>
+            <option value="2" {% if account_role == '2' %}selected{% endif %}>教师用户</option>
+            <option value="99" {% if account_role == '99' %}selected{% endif %}>管理员</option>
+        </select>
+    </div>
+    <br>
+    <div class="input-group">
+        <div class="input-group-addon"><input type="checkbox" name="desc" id="" value="1" {% if desc %}checked{% endif %}> 倒序排列</div>
+    </div>
+    <input type="submit" value="" style="display: none">
+</form>

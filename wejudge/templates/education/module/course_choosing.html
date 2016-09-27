@@ -1,0 +1,66 @@
+<form action="{% url 'education_save_course_choosing' %}" method="post" id="course_choosing_form">
+    <h4>当前学期：{{ web_config.year }}-{{ web_config.year|add:1 }}年，第{{ web_config.term }}学期；</h4>
+    <div class="input-group">
+        <div class="input-group-addon">课程</div>
+        <select name="course" id="course_list" class="form-control">
+            {% if arrangements == None %}
+            <option value="">请选择</option>
+            {% endif %}
+            {% for course in course_list %}
+                <option value="{{ course.id }}"{% if course_id == course.id %}selected{% endif %}>{{ course.name }} - 任课教师：{{ course.teacher.realname }}</option>
+            {% endfor %}
+        </select>
+    </div><br />
+    {% if arrangements != None %}
+    <div class="input-group">
+        <div class="input-group-addon">排课信息</div>
+        <select name="arrangement" id="" class="form-control" >
+            {% for arr in arrangements %}
+            <option value="{{ arr.id }}">{{ arr.toString }}</option>
+            {% endfor %}
+        </select>
+    </div><br />
+    <div class="input-group">
+        <div class="input-group-addon">授权码</div>
+        <input name="sign" type="text" class="form-control" maxlength="4">
+    </div><br />
+    <button type="submit" class="btn btn-success">提交选课</button>
+    {% endif %}
+</form>
+<script type="text/javascript">
+    $(function () {
+        $("#course_list").change(function () {
+            var id = $(this).val();
+            $.ModalBox({
+                'title': '学生选课',
+                'default_btn_title': '关闭',
+                'mode': 'url',
+                'url': '{% url 'education_course_choosing' 0 %}'.replace("course/0", "course/"+id)
+            }).show();
+        });
+        $("#course_choosing_form").submit(function () {
+            $.GRestP({
+                responseType: "json",
+                callback: function(flag, entity){
+                    if(flag){
+                        $.AlertBox({
+                            title: "选课成功",
+                            body: "选课成功！",
+                            color: "success",
+                            callback: function () {
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "选课失败"
+                        }).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+</script>

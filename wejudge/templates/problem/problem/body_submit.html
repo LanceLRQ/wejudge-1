@@ -1,0 +1,43 @@
+<div id="submit-page-loading" align="center"><img src="/static/images/loader.gif"></div>
+<div id="submit-page" style="display: none;">
+    <form id="code-submit-form" action="{% if asgn != None %}{% url 'asgn_save_submission' asgn.id problem.id %}{% elif contest != None %}{% url 'contest_submit_code' contest.id problem.id %}{% else %}{% url 'problem_submit' problem.id %}{% endif %}" method="post" enctype="multipart/form-data">
+        <div class="my-tab-container"  style="padding: 0;">
+            <textarea id="code-editor" name="content"></textarea>
+        </div>
+        <br />
+        <div class="btn-group">
+            {% if 'gcc' in language_provider %}
+            <button class="btn btn-default slc-lang btn-primary lang-gcc" type="button" value="gcc">C语言</button>
+            {% endif %}
+            {% if 'gcc-cpp' in language_provider %}
+            <button class="btn btn-default slc-lang lang-gcc-cpp" type="button" value="gcc-cpp">C++</button>
+            {% endif %}
+            {% if 'java' in language_provider %}
+            <button class="btn btn-default slc-lang lang-java" type="button" value="java">Java</button>
+            {% endif %}
+            <button class="btn btn-success" type="submit" id="btn_submit">提交代码</button>
+        </div>
+        <input type="hidden" name="lang" value="gcc" id="code_lang" />
+    </form>
+</div>
+<div id="waiting_box" style="height: 300px; padding: 20px; display: none" >
+    <div id="judge_message" align="center">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%">
+                <span id="judge_message_distance">正在等待评测结果...</span>
+            </div>
+        </div><br />
+        如果长时间没有结果，<a href="javascript:void(0)" onclick="$('#submit-page').show();$('#waiting_box').hide();clearTimeout(get_status_timer);">点此返回编辑器</a>或者<a href="{% url 'problem_judge_status' %}" target="_blank">点此查看全局评测队列</a> 。
+        <br /><br /><span class="glyphicon glyphicon-info-sign"></span>&nbsp;
+        偶然的情况下可能因网络问题或者评测系统的问题导致评测结果不能及时呈现，请见谅，并且不要重复提交代码，可以向管理员或老师反馈情况。
+    </div>
+    <div id="judge_result" align="center" style="display: none;">
+        <h1><span class="glyphicon glyphicon-ok" id="judge_result_icon"></span>&nbsp;<span id="judge_result_title">评测通过</span></h1>
+        <h5 id="judge_result_content">恭喜，您的代码顺利通过评测</h5><hr />
+        <a href="javascript:void(0)" onclick="$('#submit-page').show();$('#waiting_box').hide();clearTimeout(get_status_timer);" class="btn btn-primary">点此返回编辑器</a><br /><br />
+        <div class="btn-group">
+            <a href="{% if asgn != None %}{% url 'asgn_status_list' asgn.id %}{% elif contest != None %}{% url 'contest_status' contest.id %}{% else %}{% url 'problem_judge_status' %}{% endif %}" target="_blank" class="btn btn-danger">查看全局评测队列</a>
+            <a id="judge_status_report" href="" target="_blank" class="btn btn-warning">查看评测机报告</a>
+        </div>
+    </div>
+</div>

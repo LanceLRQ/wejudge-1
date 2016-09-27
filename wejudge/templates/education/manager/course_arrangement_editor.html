@@ -1,0 +1,140 @@
+{% load full_time %}
+{% load get_week %}
+<div class="my-tab-container">
+    {% if type == 'new' %}
+    <h3>新建排课</h3>
+    {% else %}
+    <h3>编辑排课</h3>
+    {% endif %}
+    <form action="{% if type == 'new' %}{% url 'education_mgr_save_new_course_arrangement' course.id %}{% else %}{% url 'education_mgr_save_modify_course_arrangement' course.id arrangement.id %}{% endif %}" method="post" id="form-arrangement">
+        <div class="input-group">
+            <div class="input-group-addon">周次：第</div>
+            <select name="start_week" id="" class="form-control">
+                {% for i in weeks_term %}
+                <option value="{{ i }}" {% if arrangement.start_week == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <div class="input-group-addon">周 到</div>
+            <select name="end_week" id="" class="form-control">
+                {% for i in weeks_term %}
+                <option value="{{ i }}" {% if arrangement.end_week == i %}selected{% endif %}{% if arrangement == None and i == 17 %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <div class="input-group-addon">周</div>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon" >星期：</div>
+            <select name="odd_even" id="" class="form-control">
+                <option value="0" {% if arrangement.odd_even == 0 %}selected{% endif %}>单双周</option>
+                <option value="1" {% if arrangement.odd_even == 1 %}selected{% endif %}>单周</option>
+                <option value="2" {% if arrangement.odd_even == 2 %}selected{% endif %}>双周</option>
+            </select>
+            <div class="input-group-addon" >周</div>
+            <select name="day_of_week" id="" class="form-control">
+                {% for i in weeks %}
+                <option value="{{ i }}" {% if arrangement.day_of_week == i %}selected{% endif %}>{{ i|get_week }}</option>
+                {% endfor %}
+            </select>
+        </div><br/>
+        <div class="input-group">
+            <div class="input-group-addon">节次：第</div>
+            <select name="start_section" id="start_section" class="form-control">
+                {% for i in sections %}
+                <option value="{{ i }}" {% if arrangement.start_section == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <div class="input-group-addon">节 到</div>
+            <select name="end_section" id="end_section" class="form-control">
+                {% for i in sections %}
+                <option value="{{ i }}" {% if arrangement.end_section == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <div class="input-group-addon">节</div>
+        </div>
+        <br>
+        <div class="input-group">
+            <div class="input-group-addon">上课时间（24小时制，自动忽略秒）</div>
+            <input id="start_time" name="start_time" type="text" class="form-control" value="{{ arrangement.start_time | default:28800 | full_time:"time" }}">
+            <div class="input-group-addon">到</div>
+            <input id="end_time" name="end_time" type="text" class="form-control" value="{{ arrangement.end_time | default:28800 | full_time:"time" }}">
+        </div>
+        <br>
+        <button type="submit" class="btn btn-success">保存</button>
+    </form>
+</div>
+<script type="text/javascript">
+    $(function(){
+        var start_section_times = {
+            1: '08:00:00',
+            2: '08:50:00',
+            3: '09:55:00',
+            4: '10:45:00',
+            5: '13:40:00',
+            6: '14:30:00',
+            7: '15:35:00',
+            8: '16:25:00',
+            9: '17:15:00',
+            10: '19:00:00',
+            11: '19:50:00',
+            12: '20:45:00',
+            13: '21:35:00'
+        };
+        var end_section_times = {
+            1: '08:45:00',
+            2: '09:35:00',
+            3: '10:40:00',
+            4: '11:30:00',
+            5: '14:25:00',
+            6: '15:15:00',
+            7: '16:20:00',
+            8: '17:10:00',
+            9: '18:00:00',
+            10: '19:45:00',
+            11: '20:35:00',
+            12: '21:30:00',
+            13: '22:20:00'
+        };
+
+        $("#start_time, #end_time").datetimepicker({
+            format: 'hh:ii:ss',
+            maxView: 0,
+            minView: 0,
+            startView: 0,
+            minuteStep: 5,
+            autoclose: true,
+            todayHighlight:true,
+            todayBtn:true
+        });
+        $("#start_section").change(function () {
+            $("#start_time").val(start_section_times[parseInt($(this).val())]);
+        });
+        $("#end_section").change(function () {
+            $("#end_time").val(end_section_times[parseInt($(this).val())]);
+        });
+        $("#form-arrangement").submit(function () {
+            $.GRestP({
+                responseType: 'json',
+                callback: function (flag, entity) {
+                    if(flag){
+                        $.AlertBox({
+                            title: "保存成功",
+                            body: "排课信息保存成功！",
+                            color: "success",
+                            callback: function () {
+                                window.location.reload();
+                            }
+                        }).show();
+                    }else{
+                        $.AlertBox({
+                            body: entity.msg,
+                            color: "danger",
+                            title: "保存失败"
+                        }).show();
+                    }
+                }
+            }).submit_form(this);
+            return false;
+        });
+    });
+</script>
