@@ -5,9 +5,12 @@ An Online Judge Work for Education
 
 演示网址：http://oj.bnuz.edu.cn ；游客账号：guest，密码：wejudge
 
+2017年03月：WeJudge2.0正在开发中，此1.x版本不再更新；新版OJ考虑到安全性等，不打算那么早开源，如果有兴趣加入我们项目组请发邮件到me#lanrongqi.com或者lancelrq#gmail.com
+（P.S. : Github国内实在太慢了，而且私有库要钱，所以新版的Dev只好放开源中国了...真心尴尬)
+
 ---
 
-　这是一个基于Python语言和Django框架所开发的一个完整的程序代码在线评测系统，支持C、C++、Java语言的评测。与通常意义上的OJ不同的是，它拥有一个教学管理系统和作业管理系统，可以支持教学辅助使用。并且，这也许是最漂亮的中文OJ系统呢~
+　这是一个基于Python语言和Django框架所开发的一个完整的程序代码在线评测系统，支持C、C++、Java语言的评测。与通常意义上的OJ不同的是，它拥有一个教学管理系统和作业管理系统，可以支持教学辅助使用。并且，这也许是最漂亮的中文OJ系统呢~（好不要脸啊我...)
 
 　　项目起源于一次OJ应用的设想。我曾经也是ACM校队的一员，大一的时候游走于国内各大OJ，刷题，并且还去2014广东省赛打了个酱油拿了个铜牌。后来觉得自己脑洞不够大，并且更加倾向于应用型的开发，因此退了校队，开始专心研究开发。期间在学长和GDG Zhuhai的带动下接触了Python语言。一次偶然的机会，老师的提议和我的想法不谋而合，并且在Github上找到名为Lo-runner的Python判题核心开源项目（这个对于我来说是难处，因为没有任何经验），便开始了这个项目的研究和开发。
 
@@ -41,11 +44,15 @@ xlrd
 
 xlwt
 
-还有记不住了...
+还有记不住了...反正报什么错装什么呗，Lorun去我个人主页下的那个fork里边下或者去原作者那下都行。
+
+查重用的是那个什么Laven...的请自行看源代码..
+
+apt install indent （这个是支持那个代码格式化的命令行工具）
 
 ##### 线上环境：
 
-Ubuntu + Nginx + Python2.7 + MySQL 5.6
+Ubuntu + Nginx + Python2.7 + MySQL 5.6 ，建议用gunicorn来调用uWSGI接口。
 
 ##### 存储目录：
 
@@ -113,15 +120,15 @@ Ubuntu + Nginx + Python2.7 + MySQL 5.6
 
 ### 作者简介
 
-作者昵称：LanceLRQ
+姓名：蓝荣祺
 
-个人博客： http://www.lanrongqi.com/
+个人博客： http://www.lanrongqi.com/ （还是别看了，也没啥东西，我这人懒...)
 
-联系邮箱：me#lanrongqi.com
+联系邮箱：me#lanrongqi.com 或者 lancelrq#gmail.com
 
-微信：同昵称
+微信：LanceLRQ
 
-作者目前大三，明年就要出去实习了~
+作者目前大三，要出去实习了，如果有大佬想给我点事儿做的话我很愿意的~嘿嘿
 
 俺会HTML+CSS（主要学习的），Python，NodeJS（在学习，也有在使用开发项目）；以前有学过C#、VB，PHP，做过ASP、PHP为语言的小型网站。目前游荡中，以及和自己的项目团队在做一个NodeJS开发微信第三方平台的外包。
 
