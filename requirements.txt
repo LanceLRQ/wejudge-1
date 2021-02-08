@@ -25,7 +25,7 @@ django-celery==3.1.17
 django-mysqlpool==0.1-9
 duplicity==0.6.23
 html5lib==0.999
-httplib2==0.8
+httplib2==0.19.0
 image==1.4.4
 kombu==3.0.33
 lockfile==0.8
