@@ -30,7 +30,7 @@ image==1.4.4
 kombu==3.0.33
 lockfile==0.8
 lorun==1.0.2
-lxml==3.3.3
+lxml==4.6.3
 meld3==1.0.2
 oauthlib==0.6.1
 oneconf==0.3.7
