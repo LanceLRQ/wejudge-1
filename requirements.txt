@@ -50,7 +50,7 @@ python-debian==0.1.21-nmu2ubuntu2
 pytz==2015.7
 pyxdg==0.25
 redis==2.10.5
-reportlab==3.0
+reportlab==3.5.55
 requests==2.8.1
 sessioninstaller==0.0.0
 six==1.5.2
