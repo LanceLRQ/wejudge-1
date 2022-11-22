@@ -2,7 +2,7 @@ DBUtils==1.1
 Django==1.9
 MySQL-python==1.2.5
 PAM==0.4.2
-Pillow==2.3.0
+Pillow==9.3.0
 SQLAlchemy==1.0.5
 Twisted-Core==13.2.0
 Twisted-Web==13.2.0
