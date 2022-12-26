@@ -60,7 +60,7 @@ system-service==0.1.6
 unity-lens-photos==1.0
 urllib3==1.7.1
 wechat-sdk==0.5.8
-wheel==0.24.0
+wheel==0.38.1
 wsgiref==0.1.2
 xdiagnose==3.6.3build2
 xlrd==0.9.4
